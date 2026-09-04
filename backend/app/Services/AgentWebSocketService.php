@@ -68,39 +68,37 @@ class AgentWebSocketService
     {
         Log::info('AUTH MESSAGE', $message);
 
-        
         $payload = $message['payload'];
+        $name = $payload["agent_name"];
+        $token = $payload["token"];
 
-        $token = $message['payload']['token'] ?? null;
-
-        if (is_null($token)) {
-            $connection->send([
-                'type' => 'auth_no',
-                'message' => 'Token is null',
-            ]);
-            return;
-        }
-
-        $agent = ServerAgent::where('token', $token)->first();
-
-        if (!$agent) {
-            Log::warning('Auth rejected: agent not found');
+        if (!$token) {
+            Log::info('Error', 'Missing Agent-Token');
             $connection->close();
             return;
         }
-            
-        $payload = $message['payload'] ?? [];
+        if (!$name) {
+            Log::info('Error', 'Missing Agent-Name');
+            $connection->close();
+            return;
+        }
 
-        $data = [
-            'agent_id'   => $payload['agent_id'],
-        ];
+        $agent = ServerAgent::where('name', $name)->first();
 
-        $agent->update($data);
+        if (!Hash::check($payload['token'], $agent->token)) {
+            Log::info('Error', 'No valide token');
+            $connection->close();
+            return;
+        }
+
+        $request->attributes->add(['agent' => $agent]);
 
         $connection->send([
             'type' => 'auth_ok',
             'agent_id' => $agent->agent_id,
         ]);
+        
+        return $request;
     }
 
     protected function handleStats(AgentSocketConnection $connection, array $message): void

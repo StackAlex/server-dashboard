@@ -21,12 +21,12 @@ class AgentAuthMiddleware
         $token = $payload["token"] ?? null;
 
         if (!$token) {
-            return response()->json(['error' => 'Missing Agent-Token'], 403);
             Log::info('Error', 'Missing Agent-Token');
+            return response()->json(['error' => 'Missing Agent-Token'], 403);
         }
         if (!$name) {
-            return response()->json(['error' => 'Missing Agent-Name'], 403);
             Log::info('Error', 'Missing Agent-Name');
+            return response()->json(['error' => 'Missing Agent-Name'], 403);
         }
 
         $agent = ServerAgent::where('name', $name)->first();

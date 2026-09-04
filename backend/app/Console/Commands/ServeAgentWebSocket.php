@@ -115,10 +115,16 @@ class ServeAgentWebSocket extends Command
 
                 $this->line("Payload: {$payload}");
 
-                $service->handleMessage(
-                    $client['connection'],
-                    $payload
-                );
+               try {
+                    $service->handleMessage(
+                        $client['connection'],
+                        $payload
+                    );
+                } catch (\Throwable $e) {
+                    $this->error($e->getMessage());
+                    $this->error($e->getFile());
+                    $this->error($e->getLine());
+                }
             }
 
             unset($client);

@@ -3,20 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Services\AgentWebSocketService;
+use App\Models\AgentMetric;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
-use App\Models\Agent;
 use App\Models\ServerAgent;
-use App\Http\Resources\AgentResource;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 
 class AgentController extends Controller
 {
     public function index()
     {
-        $agent = Agent::first();
+        $agent = ServerAgent::where('user_id', Auth::id())->first();
 
         if (!$agent) {
             return response()->json([
@@ -24,7 +21,16 @@ class AgentController extends Controller
             ], 404);
         }
 
-        return new AgentResource($agent);
+        $metrics = AgentMetric::where('agent_id', $agent->agent_id)->first();
+        $stats = $metrics?->metrics ?? [];
+
+        return response()->json([
+            ...$stats,
+            'agent_id' => $agent->agent_id,
+            'name' => $agent->name,
+            'status' => $metrics ? 'online' : 'offline',
+            'last_seen' => $metrics?->updated_at,
+        ]);
     }
     
     public function heartbeat(Request $request) 
@@ -46,13 +52,12 @@ class AgentController extends Controller
             'token' => 'required|string',
         ]);
 
-        $agent=new Agent();
-
         ServerAgent::create([
             'user_id'  => Auth::id(),
+            'agent_id' => (string) \Illuminate\Support\Str::uuid(),
             'name'     => $data['name'],
             'token'    => Hash::make($data['token']),
-            'enabled'  => false,
+            'enabled'  => true,
         ]);
 
         return response()->json([

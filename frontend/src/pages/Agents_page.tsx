@@ -156,7 +156,7 @@ export default function AgentPage(){
                                 {edit && (
                                     <th></th>
                                 )}
-                                <th>ID</th>
+                                <th>UUID</th>
                                 <th>Name</th>
                                 <th>Owner</th>
                                 <th>Add at</th>
@@ -175,7 +175,7 @@ export default function AgentPage(){
                                             />
                                         </td>
                                     )}
-                                    <td>{el.agent_id}</td>
+                                    <td>{el.agent_id || null}</td>
                                     <td>{el.name}</td>
                                     <td>{el.user_id}</td>
                                     <td>{el.created_at}</td>

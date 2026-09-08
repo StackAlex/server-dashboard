@@ -33,18 +33,19 @@ type Stats = {
     cpu?: {
         usage: number;
     };
-    ram?: {
-        total: number;
-        used: number;
+    memory?: {
+        total_gb: number;
+        used_gb: number;
         percent: number;
     };
     disk?: {
-        total: number;
-        used: number;
+        total_gb: number;
+        used_gb: number;
         percent: number;
     };
     network?: {
-        received_bytes: number;
+        in_bytes?: number;
+        network_in?: number;
     };
     load?: {
         one_minute: number;
@@ -56,13 +57,11 @@ type Stats = {
 
 export default function Dashboard() {
     const [stats, setStats] = useState<Stats>({});
-    const [data] = useState({
-        cpu: { usage: 0 },
-        ram: { percent: 0 },
-        disk: { used: 0, total: 0 },
-        network: { received_bytes: 0 },
-        load: { one_minute: 0 },
-        uptime: "0m",
+    const { data: agentStats } = useQuery({
+        queryKey: ["agent-stats"],
+        queryFn: agent,
+        refetchInterval: 2000,
+        staleTime: 1000,
     });
 
     const {
@@ -82,10 +81,21 @@ export default function Dashboard() {
 
     const [cpuHistory, setCpuHistory] = useState<CpuPoint[]>([]);
 
+    useEffect(() => {
+        if (!agentStats) return;
+
+        const nextStats = agentStats as Stats;
+        setStats(nextStats);
+        setCpuHistory((history) => [
+            ...history.slice(-29),
+            { time: new Date().toLocaleTimeString(), usage: nextStats.cpu?.usage ?? 0 },
+        ]);
+    }, [agentStats]);
+
     const ramData = useMemo(() => [
-        { name: "Used", value: stats.ram?.percent ?? 0 },
-        { name: "Free", value: Math.max(100 - (stats.ram?.percent ?? 0), 0) },
-    ], [stats.ram?.percent]);
+        { name: "Used", value: stats.memory?.percent ?? 0 },
+        { name: "Free", value: Math.max(100 - (stats.memory?.percent ?? 0), 0) },
+    ], [stats.memory?.percent]);
     return (
         <section id="dashboard" className="page">
             {isLoading ? (
@@ -117,17 +127,17 @@ export default function Dashboard() {
                             <div className="ram_stat">
                                 <MemoryStick size={60} className="icon" />
                                 <span className="label">RAM Usage:</span>
-                                <span className="value">{`${stats.ram?.percent ?? 0}%`}</span>
+                                <span className="value">{`${stats.memory?.percent ?? 0}%`}</span>
                             </div>
                             <div className="disk_stat">
                                 <HardDrive size={60} className="icon" />
                                 <span className="label">Disk Usage:</span>
-                                <span className="value">{`${stats.disk?.used ?? 0}/${stats.disk?.total ?? 0} GB`}</span>
+                                <span className="value">{`${stats.disk?.used_gb ?? 0}/${stats.disk?.total_gb ?? 0} GB`}</span>
                             </div>
                             <div className="network_stat">
                                 <Network size={60} className="icon" />
                                 <span className="label">Network speed:</span>
-                                <span className="value">{`${stats.network?.received_bytes ?? 0} bytes`}</span>
+                                <span className="value">{`${stats.network?.in_bytes ?? stats.network?.network_in ?? 0} bytes`}</span>
                             </div>
                         </div>
                         <hr />

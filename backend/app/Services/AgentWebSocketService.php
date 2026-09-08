@@ -2,11 +2,10 @@
 
 namespace App\Services;
 
-use BeyondCode\LaravelWebSockets\WebSockets\Channels\Channel;
-use BeyondCode\LaravelWebSockets\WebSockets\Server;
+use App\Models\AgentMetric;
 use Illuminate\Support\Facades\Log;
-use App\Models\Agent;
 use App\Models\ServerAgent;
+use Illuminate\Support\Facades\Hash;
 
 class AgentWebSocketService
 {
@@ -66,49 +65,60 @@ class AgentWebSocketService
 
     protected function handleAuth(AgentSocketConnection $connection, array $message): void
     {
-        Log::info('AUTH MESSAGE', $message);
-
-        $payload = $message['payload'];
-        $name = $payload["agent_name"];
-        $token = $payload["token"];
+        $payload = $message['payload'] ?? $message;
+        $name = $payload['agent_name'] ?? null;
+        $token = $payload['token'] ?? null;
 
         if (!$token) {
-            Log::info('Error', 'Missing Agent-Token');
+            Log::warning('Agent auth failed: missing token');
             $connection->close();
             return;
         }
         if (!$name) {
-            Log::info('Error', 'Missing Agent-Name');
+            Log::warning('Agent auth failed: missing agent name');
             $connection->close();
             return;
         }
 
         $agent = ServerAgent::where('name', $name)->first();
 
-        if (!Hash::check($payload['token'], $agent->token)) {
-            Log::info('Error', 'No valide token');
+        if (!$agent || !$agent->enabled || !Hash::check($token, $agent->token)) {
+            Log::warning('Agent auth failed', ['name' => $name]);
             $connection->close();
             return;
         }
 
-        $request->attributes->add(['agent' => $agent]);
+        $connection->authenticated = true;
+        $connection->agentUuid = $payload['agent_id'] ?? $agent->agent_id;
+
+        if ($agent->agent_id !== $connection->agentUuid) {
+            $agent->update(['agent_id' => $connection->agentUuid]);
+        }
 
         $connection->send([
             'type' => 'auth_ok',
-            'agent_id' => $agent->agent_id,
+            'agent_id' => $connection->agentUuid,
         ]);
-        
-        return $request;
     }
 
     protected function handleStats(AgentSocketConnection $connection, array $message): void
     {
-        $payload = $message['payload'];
-        $stats = $payload['stats'];
+        if (!$connection->authenticated) {
+            Log::warning('Ignoring stats from unauthenticated agent');
+            return;
+        }
 
-    Agent::where('agent_id', $payload['agent_id'])->update([
-        'output'    => $payload['stats'],
-        'last_seen' => now(),
-    ]);
+        $payload = $message['payload'] ?? [];
+        $stats = $payload['stats'] ?? null;
+        $agentId = $payload['agent_id'] ?? $connection->agentUuid;
+
+        if (!is_array($stats) || !$agentId) {
+            return;
+        }
+
+        AgentMetric::updateOrCreate(
+            ['agent_id' => $agentId],
+            ['metrics' => $stats]
+        );
     }
 }

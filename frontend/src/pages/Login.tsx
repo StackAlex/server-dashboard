@@ -42,7 +42,7 @@ export default function Login() {
 
     return (
         <section className="page" id="login">
-            <h1>Dashboard <a href="https://github.com/GWANUR" target="_blank" rel="noopener noreferrer">By StackAlex</a></h1>
+            <h1>Dashboard <a href="https://github.com/StackAlex" target="_blank" rel="noopener noreferrer">By StackAlex</a></h1>
             <div className="login_window">
             <h2>Login</h2>
                 <form onSubmit={handleSubmit}>

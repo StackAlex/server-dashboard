@@ -15,6 +15,8 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { LoadPage } from "../pages/LoadPage";
 
+import docker from "../../public/docker-mark-ocean-blue.svg";
+
 
 export default function MainLayout() {
 
@@ -66,6 +68,12 @@ export default function MainLayout() {
                                 <Link to="/servers">
                                     <Server size={18} />
                                     Servers
+                                </Link>
+                            </li>
+                            <li>
+                                <Link to="/docker">
+                                    <img src={docker} alt="Docker" width={18} height={18} />
+                                    Docker
                                 </Link>
                             </li>
                             <li>

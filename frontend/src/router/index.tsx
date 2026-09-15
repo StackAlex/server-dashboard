@@ -11,6 +11,7 @@ import Log from "../pages/Log";
 import Users_page from "../pages/UsersPage"; 
 import AgentPage from "../pages/Agents_page"; 
 import ProtectedRoute from "./ProtectedRoute";
+import Docker_page from "../pages/Docker_page";
 
 export const router = createBrowserRouter([
     {
@@ -26,6 +27,10 @@ export const router = createBrowserRouter([
             {
                 path: "/servers",
                 element: <Servers />,
+            },
+            {
+                path: "/docker",
+                element: <Docker_page />,
             },
             {
                 path: "/terminal",

@@ -484,20 +484,46 @@ class AgentWebSocketService
         AgentSocketConnection $agent,
         array $message
     ): void {
-        $terminal =
-            $this->findTerminalBySession(
-                $message
-            );
+        $payload = $message['payload'] ?? [];
+
+        $sessionId = $payload['session_id'] ?? null;
+        $data = $payload['data'] ?? '';
+
+        $terminal = $this->findTerminalBySession($message);
 
         if (!$terminal) {
+            Log::warning(
+                '[terminal] Browser connection not found',
+                [
+                    'session_id' => $sessionId,
+                ]
+            );
+
             return;
         }
 
-        $terminal->send([
+        Log::info(
+            '[terminal] Sending output to browser',
+            [
+                'connection' => $terminal->id,
+                'session_id' => $sessionId,
+                'data_length' => strlen($data),
+                'data' => $data,
+            ]
+        );
+
+        $result = $terminal->send([
             'type' => 'terminal:output',
-            'payload' =>
-                $message['payload'] ?? [],
+            'payload' => $payload,
         ]);
+
+        Log::info(
+            '[terminal] Browser send result',
+            [
+                'connection' => $terminal->id,
+                'result' => $result,
+            ]
+        );
     }
 
     protected function handleTerminalExit(

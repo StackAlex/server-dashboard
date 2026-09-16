@@ -45,7 +45,11 @@ class ServeAgentWebSocket extends Command
 
                 $id = (string) intval(microtime(true) * 1000);
 
-                $connection = new AgentSocketConnection($id, $clientSocket);
+                $connection = new AgentSocketConnection(
+                    $id,
+                    $clientSocket,
+                    'agent'
+                );
 
                 $connections[$id] = [
                     'socket' => $clientSocket,

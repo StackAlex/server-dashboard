@@ -12,21 +12,39 @@ class AgentSocketConnection
 
     public ?string $agentUuid = null;
 
-    public function __construct(string $id, $socket)
-    {
+    public string $type;
+
+    public function __construct(
+        string $id,
+        $socket,
+        string $type = 'agent'
+    ) {
         $this->id = $id;
         $this->socket = $socket;
+        $this->type = $type;
     }
 
-    public function send(array $payload): void
+    public function send(array $payload): bool
     {
-        $json = json_encode($payload, JSON_UNESCAPED_UNICODE);
-
-        if ($json === false) {
-            return;
+        if (!is_resource($this->socket)) {
+            return false;
         }
 
-        fwrite($this->socket, $this->encodeFrame($json));
+        $json = json_encode(
+            $payload,
+            JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES
+        );
+
+        if ($json === false) {
+            return false;
+        }
+
+        $written = @fwrite(
+            $this->socket,
+            $this->encodeFrame($json)
+        );
+
+        return $written !== false;
     }
 
     public function receive(string $data): string
@@ -34,11 +52,21 @@ class AgentSocketConnection
         return $this->decodeFrame($data);
     }
 
+    public function isOpen(): bool
+    {
+        return is_resource($this->socket) && !feof($this->socket);
+    }
+
     public function close(): void
     {
-        if (is_resource($this->socket)) {
-            fclose($this->socket);
+        if (!is_resource($this->socket)) {
+            return;
         }
+
+        $socket = $this->socket;
+        $this->socket = null;
+
+        @fclose($socket);
     }
 
     private function encodeFrame(string $payload): string
@@ -66,27 +94,62 @@ class AgentSocketConnection
             return '';
         }
 
-        $length = ord($data[1]) & 127;
+        $firstByte = ord($data[0]);
 
+        // Пока обрабатываем только text frames.
+        if (($firstByte & 0x0F) !== 0x01) {
+            return '';
+        }
+
+        $length = ord($data[1]) & 127;
         $offset = 2;
 
         if ($length === 126) {
-            $length = unpack('n', substr($data, 2, 2))[1];
+            if (strlen($data) < 8) {
+                return '';
+            }
+
+            $length = unpack(
+                'n',
+                substr($data, 2, 2)
+            )[1];
+
             $offset = 4;
         } elseif ($length === 127) {
-            $length = unpack('J', substr($data, 2, 8))[1];
+            if (strlen($data) < 14) {
+                return '';
+            }
+
+            $length = unpack(
+                'J',
+                substr($data, 2, 8)
+            )[1];
+
             $offset = 10;
+        }
+
+        if (strlen($data) < $offset + 4) {
+            return '';
         }
 
         $mask = substr($data, $offset, 4);
         $offset += 4;
 
-        $payload = substr($data, $offset, $length);
+        if (strlen($data) < $offset + $length) {
+            return '';
+        }
+
+        $payload = substr(
+            $data,
+            $offset,
+            $length
+        );
 
         $decoded = '';
 
         for ($i = 0; $i < $length; $i++) {
-            $decoded .= $payload[$i] ^ $mask[$i % 4];
+            $decoded .= $payload[$i]
+                ^ $mask[$i % 4];
         }
 
         return $decoded;

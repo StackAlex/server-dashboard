@@ -13,6 +13,14 @@ export default function Terminal_page() {
     const [command, setCommand] = useState("");
     const [connected, setConnected] = useState(false);
 
+    const generateRequestId = () => {
+        if (typeof crypto !== "undefined" && crypto.randomUUID) {
+            return crypto.randomUUID();
+        }
+
+        return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    };
+
     useEffect(() => {
         if (!terminalRef.current) return;
 
@@ -50,7 +58,7 @@ export default function Terminal_page() {
             ws.send(
                 JSON.stringify({
                     type: "terminal:open",
-                    request_id: crypto.randomUUID(),
+                    request_id: generateRequestId(),
                     payload: {
                         agent_id: AGENT_ID,
                         cols: terminal.cols,
@@ -139,7 +147,7 @@ export default function Terminal_page() {
             ws.send(
                 JSON.stringify({
                     type: "terminal:resize",
-                    request_id: crypto.randomUUID(),
+                    request_id: generateRequestId(),
                     payload: {
                         session_id: sessionIdRef.current,
                         cols: terminal.cols,
@@ -163,7 +171,7 @@ export default function Terminal_page() {
                 ws.send(
                     JSON.stringify({
                         type: "terminal:close",
-                        request_id: crypto.randomUUID(),
+                        request_id: generateRequestId(),
                         payload: {
                             session_id: sessionId,
                             reason: "terminal_unmounted",
@@ -192,7 +200,7 @@ export default function Terminal_page() {
         wsRef.current.send(
             JSON.stringify({
                 type: "terminal:input",
-                request_id: crypto.randomUUID(),
+                request_id: generateRequestId(),
                 payload: {
                     session_id: sessionIdRef.current,
                     data: value + "\n",

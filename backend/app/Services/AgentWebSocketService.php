@@ -97,7 +97,9 @@ class AgentWebSocketService
 
         $connection->send([
             'type' => 'auth_ok',
-            'agent_id' => $connection->agentUuid,
+            'payload' => [
+                'agent_id' => $connection->agentUuid,
+            ],
         ]);
     }
 

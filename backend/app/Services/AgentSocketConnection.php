@@ -14,6 +14,10 @@ class AgentSocketConnection
 
     public string $type;
 
+    public ?string $targetAgentUuid = null;
+    
+    public ?string $terminalSessionId = null;
+    
     public function __construct(
         string $id,
         $socket,

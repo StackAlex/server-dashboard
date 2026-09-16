@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services;
+use SplMutex;
 
 class AgentSocketConnection
 {
@@ -45,16 +46,23 @@ class AgentSocketConnection
 
         $frame = $this->encodeFrame($json);
 
-        $length = strlen($frame);
+        $total = strlen($frame);
         $written = 0;
 
-        while ($written < $length) {
+        while ($written < $total) {
             $result = @fwrite(
                 $this->socket,
                 substr($frame, $written)
             );
 
             if ($result === false || $result === 0) {
+                \Log::error('[WebSocket] Failed to write frame', [
+                    'connection' => $this->id,
+                    'type' => $payload['type'] ?? null,
+                    'written' => $written,
+                    'total' => $total,
+                ]);
+
                 return false;
             }
 
@@ -84,6 +92,40 @@ class AgentSocketConnection
         $this->socket = null;
 
         @fclose($socket);
+    }
+    protected function handleTerminalOutput(
+        AgentSocketConnection $agent,
+        array $message
+    ): void {
+        $terminal = $this->findTerminalBySession($message);
+
+        if (!$terminal) {
+            \Log::warning('[terminal] Browser connection not found', [
+                'session_id' => $message['payload']['session_id'] ?? null,
+            ]);
+
+            return;
+        }
+
+        $payload = [
+            'type' => 'terminal:output',
+            'payload' => $message['payload'] ?? [],
+        ];
+
+        \Log::info('[terminal] Sending output to browser', [
+            'connection' => $terminal->id,
+            'session_id' => $message['payload']['session_id'] ?? null,
+            'data_length' => strlen(
+                $message['payload']['data'] ?? ''
+            ),
+        ]);
+
+        $result = $terminal->send($payload);
+
+        \Log::info('[terminal] Browser send result', [
+            'connection' => $terminal->id,
+            'result' => $result,
+        ]);
     }
 
     private function encodeFrame(string $payload): string

@@ -56,7 +56,7 @@ class AgentSocketConnection
             );
 
             if ($result === false || $result === 0) {
-                \Log::error('[WebSocket] Failed to write frame', [
+                Log::error('[WebSocket] Failed to write frame', [
                     'connection' => $this->id,
                     'type' => $payload['type'] ?? null,
                     'written' => $written,

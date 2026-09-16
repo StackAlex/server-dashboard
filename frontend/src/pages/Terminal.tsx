@@ -26,7 +26,7 @@ export default function Terminal_page() {
         fitAddon.fit();
 
         const ws = new WebSocket(
-            `ws://${window.location.host}/ws/terminal`
+            `ws://${window.location.host}/ws/agent`
         );
 
         wsRef.current = ws;

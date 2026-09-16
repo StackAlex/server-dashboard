@@ -17,7 +17,7 @@ class AgentSocketConnection
     public ?string $targetAgentUuid = null;
     
     public ?string $terminalSessionId = null;
-    
+
     public function __construct(
         string $id,
         $socket,
@@ -43,12 +43,25 @@ class AgentSocketConnection
             return false;
         }
 
-        $written = @fwrite(
-            $this->socket,
-            $this->encodeFrame($json)
-        );
+        $frame = $this->encodeFrame($json);
 
-        return $written !== false;
+        $length = strlen($frame);
+        $written = 0;
+
+        while ($written < $length) {
+            $result = @fwrite(
+                $this->socket,
+                substr($frame, $written)
+            );
+
+            if ($result === false || $result === 0) {
+                return false;
+            }
+
+            $written += $result;
+        }
+
+        return true;
     }
 
     public function receive(string $data): string

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
 import "xterm/css/xterm.css";
@@ -9,6 +9,9 @@ export default function Terminal_page() {
     const terminalRef = useRef<HTMLDivElement>(null);
     const wsRef = useRef<WebSocket | null>(null);
     const sessionIdRef = useRef<string | null>(null);
+
+    const [command, setCommand] = useState("");
+    const [connected, setConnected] = useState(false);
 
     useEffect(() => {
         if (!terminalRef.current) return;
@@ -38,6 +41,8 @@ export default function Terminal_page() {
         wsRef.current = ws;
 
         ws.onopen = () => {
+            setConnected(true);
+
             terminal.write(
                 "\r\n\x1b[32mConnected to terminal server\x1b[0m\r\n"
             );
@@ -100,44 +105,26 @@ export default function Terminal_page() {
                     }
                 }
             } catch {
-                // На случай, если сервер прислал обычный текст
                 terminal.write(event.data);
             }
         };
 
         ws.onerror = () => {
+            setConnected(false);
+
             terminal.write(
                 "\r\n\x1b[31mWebSocket error\x1b[0m\r\n"
             );
         };
 
         ws.onclose = () => {
+            setConnected(false);
+            sessionIdRef.current = null;
+
             terminal.write(
                 "\r\n\x1b[31mConnection closed\x1b[0m\r\n"
             );
-
-            sessionIdRef.current = null;
         };
-
-        terminal.onData((data) => {
-            if (
-                ws.readyState !== WebSocket.OPEN ||
-                !sessionIdRef.current
-            ) {
-                return;
-            }
-
-            ws.send(
-                JSON.stringify({
-                    type: "terminal:input",
-                    request_id: crypto.randomUUID(),
-                    payload: {
-                        session_id: sessionIdRef.current,
-                        data,
-                    },
-                })
-            );
-        });
 
         const resize = () => {
             fitAddon.fit();
@@ -190,6 +177,41 @@ export default function Terminal_page() {
         };
     }, []);
 
+    const sendCommand = () => {
+        const value = command;
+
+        if (
+            !value.trim() ||
+            !wsRef.current ||
+            wsRef.current.readyState !== WebSocket.OPEN ||
+            !sessionIdRef.current
+        ) {
+            return;
+        }
+
+        wsRef.current.send(
+            JSON.stringify({
+                type: "terminal:input",
+                request_id: crypto.randomUUID(),
+                payload: {
+                    session_id: sessionIdRef.current,
+                    data: value + "\n",
+                },
+            })
+        );
+
+        setCommand("");
+    };
+
+    const handleKeyDown = (
+        event: React.KeyboardEvent<HTMLInputElement>
+    ) => {
+        if (event.key === "Enter") {
+            event.preventDefault();
+            sendCommand();
+        }
+    };
+
     return (
         <section id="terminal" className="pages">
             <div
@@ -200,6 +222,58 @@ export default function Terminal_page() {
                     height: "600px",
                 }}
             />
+
+            <div
+                style={{
+                    display: "flex",
+                    gap: "10px",
+                    marginTop: "10px",
+                    width: "100%",
+                }}
+            >
+                <input
+                    type="text"
+                    value={command}
+                    onChange={(event) =>
+                        setCommand(event.target.value)
+                    }
+                    onKeyDown={handleKeyDown}
+                    placeholder={
+                        connected
+                            ? "Введите команду..."
+                            : "Терминал не подключен"
+                    }
+                    disabled={!connected}
+                    style={{
+                        flex: 1,
+                        height: "40px",
+                        padding: "0 12px",
+                        boxSizing: "border-box",
+                    }}
+                />
+
+                <button
+                    type="button"
+                    onClick={sendCommand}
+                    disabled={
+                        !connected ||
+                        !command.trim() ||
+                        !sessionIdRef.current
+                    }
+                    style={{
+                        height: "40px",
+                        padding: "0 20px",
+                        cursor:
+                            connected &&
+                            command.trim() &&
+                            sessionIdRef.current
+                                ? "pointer"
+                                : "default",
+                    }}
+                >
+                    Отправить
+                </button>
+            </div>
         </section>
     );
 }

@@ -10,26 +10,37 @@ export default function Terminal_page() {
     const wsRef = useRef<WebSocket | null>(null);
     const sessionIdRef = useRef<string | null>(null);
 
-    const [command, setCommand] = useState("");
     const [connected, setConnected] = useState(false);
 
     const generateRequestId = () => {
-        if (typeof crypto !== "undefined" && crypto.randomUUID) {
+        if (
+            typeof crypto !== "undefined" &&
+            crypto.randomUUID
+        ) {
             return crypto.randomUUID();
         }
 
-        return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+        return `${Date.now()}-${Math.random()
+            .toString(36)
+            .slice(2)}`;
     };
 
     useEffect(() => {
-        if (!terminalRef.current) return;
+        if (!terminalRef.current) {
+            return;
+        }
 
         const terminal = new Terminal({
             cursorBlink: true,
             fontSize: 14,
             fontFamily: "monospace",
-            convertEol: true,
+
+            // xterm сам работает с \r\n и ANSI escape sequences
+            convertEol: false,
+
             scrollback: 5000,
+
+            allowProposedApi: true,
         });
 
         const fitAddon = new FitAddon();
@@ -40,7 +51,9 @@ export default function Terminal_page() {
         fitAddon.fit();
 
         const protocol =
-            window.location.protocol === "https:" ? "wss" : "ws";
+            window.location.protocol === "https:"
+                ? "wss"
+                : "ws";
 
         const ws = new WebSocket(
             `${protocol}://${window.location.host}/ws/terminal`
@@ -48,6 +61,9 @@ export default function Terminal_page() {
 
         wsRef.current = ws;
 
+        /*
+         * WebSocket подключился
+         */
         ws.onopen = () => {
             setConnected(true);
 
@@ -59,6 +75,7 @@ export default function Terminal_page() {
                 JSON.stringify({
                     type: "terminal:open",
                     request_id: generateRequestId(),
+
                     payload: {
                         agent_id: AGENT_ID,
                         cols: terminal.cols,
@@ -68,11 +85,17 @@ export default function Terminal_page() {
             );
         };
 
+        /*
+         * Получаем сообщения от Laravel
+         */
         ws.onmessage = (event) => {
             try {
                 const message = JSON.parse(event.data);
 
                 switch (message.type) {
+                    /*
+                     * PTY создан
+                     */
                     case "terminal:opened": {
                         sessionIdRef.current =
                             message.payload?.session_id ?? null;
@@ -81,9 +104,14 @@ export default function Terminal_page() {
                             "\r\n\x1b[32mTerminal session opened\x1b[0m\r\n"
                         );
 
+                        terminal.focus();
+
                         break;
                     }
 
+                    /*
+                     * Вывод PTY
+                     */
                     case "terminal:output": {
                         const data =
                             message.payload?.data ?? "";
@@ -93,6 +121,9 @@ export default function Terminal_page() {
                         break;
                     }
 
+                    /*
+                     * PTY завершился
+                     */
                     case "terminal:exit": {
                         terminal.write(
                             `\r\n\x1b[33mProcess exited with code ${
@@ -117,6 +148,9 @@ export default function Terminal_page() {
             }
         };
 
+        /*
+         * WebSocket ошибка
+         */
         ws.onerror = () => {
             setConnected(false);
 
@@ -125,6 +159,9 @@ export default function Terminal_page() {
             );
         };
 
+        /*
+         * WebSocket закрыт
+         */
         ws.onclose = () => {
             setConnected(false);
             sessionIdRef.current = null;
@@ -134,6 +171,45 @@ export default function Terminal_page() {
             );
         };
 
+        /*
+         * Ввод пользователя в xterm
+         *
+         * Сюда попадает каждый символ:
+         *
+         * a
+         * b
+         * c
+         * Enter -> \r
+         * Ctrl+C -> \x03
+         * Backspace -> \x7f
+         * стрелки -> ANSI escape sequences
+         */
+        const dataDisposable = terminal.onData((data) => {
+            if (
+                ws.readyState !== WebSocket.OPEN ||
+                !sessionIdRef.current
+            ) {
+                return;
+            }
+
+            ws.send(
+                JSON.stringify({
+                    type: "terminal:input",
+                    request_id: generateRequestId(),
+
+                    payload: {
+                        session_id:
+                            sessionIdRef.current,
+
+                        data,
+                    },
+                })
+            );
+        });
+
+        /*
+         * Изменение размера терминала
+         */
         const resize = () => {
             fitAddon.fit();
 
@@ -148,8 +224,11 @@ export default function Terminal_page() {
                 JSON.stringify({
                     type: "terminal:resize",
                     request_id: generateRequestId(),
+
                     payload: {
-                        session_id: sessionIdRef.current,
+                        session_id:
+                            sessionIdRef.current,
+
                         cols: terminal.cols,
                         rows: terminal.rows,
                     },
@@ -159,10 +238,19 @@ export default function Terminal_page() {
 
         window.addEventListener("resize", resize);
 
+        /*
+         * Очистка
+         */
         return () => {
-            window.removeEventListener("resize", resize);
+            window.removeEventListener(
+                "resize",
+                resize
+            );
 
-            const sessionId = sessionIdRef.current;
+            dataDisposable.dispose();
+
+            const sessionId =
+                sessionIdRef.current;
 
             if (
                 sessionId &&
@@ -171,116 +259,68 @@ export default function Terminal_page() {
                 ws.send(
                     JSON.stringify({
                         type: "terminal:close",
-                        request_id: generateRequestId(),
+                        request_id:
+                            generateRequestId(),
+
                         payload: {
-                            session_id: sessionId,
-                            reason: "terminal_unmounted",
+                            session_id:
+                                sessionId,
+
+                            reason:
+                                "terminal_unmounted",
                         },
                     })
                 );
             }
 
             ws.close();
+
             terminal.dispose();
+
+            wsRef.current = null;
+            sessionIdRef.current = null;
         };
     }, []);
 
-    const sendCommand = () => {
-        const value = command;
-
-        if (
-            !value.trim() ||
-            !wsRef.current ||
-            wsRef.current.readyState !== WebSocket.OPEN ||
-            !sessionIdRef.current
-        ) {
-            return;
-        }
-
-        wsRef.current.send(
-            JSON.stringify({
-                type: "terminal:input",
-                request_id: generateRequestId(),
-                payload: {
-                    session_id: sessionIdRef.current,
-                    data: value + "\n",
-                },
-            })
-        );
-
-        setCommand("");
-    };
-
-    const handleKeyDown = (
-        event: React.KeyboardEvent<HTMLInputElement>
-    ) => {
-        if (event.key === "Enter") {
-            event.preventDefault();
-            sendCommand();
-        }
-    };
-
     return (
-        <section id="terminal" className="pages">
+        <section
+            id="terminal"
+            className="pages"
+            style={{
+                width: "100%",
+            }}
+        >
             <div
                 ref={terminalRef}
                 className="terminal_window"
                 style={{
                     width: "100%",
                     height: "600px",
+                    overflow: "hidden",
+                }}
+                onClick={(event) => {
+                    event.currentTarget
+                        .querySelector(".xterm")
+                        ?.dispatchEvent(
+                            new MouseEvent("mousedown", {
+                                bubbles: true,
+                            })
+                        );
                 }}
             />
 
             <div
                 style={{
-                    display: "flex",
-                    gap: "10px",
                     marginTop: "10px",
-                    width: "100%",
+                    fontSize: "13px",
+                    color: connected
+                        ? "#4ade80"
+                        : "#f87171",
                 }}
             >
-                <input
-                    type="text"
-                    value={command}
-                    onChange={(event) =>
-                        setCommand(event.target.value)
-                    }
-                    onKeyDown={handleKeyDown}
-                    placeholder={
-                        connected
-                            ? "Введите команду..."
-                            : "Терминал не подключен"
-                    }
-                    disabled={!connected}
-                    style={{
-                        flex: 1,
-                        height: "40px",
-                        padding: "0 12px",
-                        boxSizing: "border-box",
-                    }}
-                />
-
-                <button
-                    type="button"
-                    onClick={sendCommand}
-                    disabled={
-                        !connected ||
-                        !command.trim() ||
-                        !sessionIdRef.current
-                    }
-                    style={{
-                        height: "40px",
-                        padding: "0 20px",
-                        cursor:
-                            connected &&
-                            command.trim() &&
-                            sessionIdRef.current
-                                ? "pointer"
-                                : "default",
-                    }}
-                >
-                    Отправить
-                </button>
+                {connected
+                    ? "● Connected"
+                    : "● Disconnected"}
             </div>
         </section>
     );

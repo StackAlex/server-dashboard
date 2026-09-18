@@ -16,6 +16,7 @@ import { SecretInput } from "../components/ui/SecretInput_By_StackAlex/SecretInp
 import type { Agent } from "../api/agent"
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { CheckBox_SA } from "../components/ui/CheckBox_By_StackALex/CheckBoxSA";
 
 
 export default function AgentPage(){
@@ -168,10 +169,10 @@ export default function AgentPage(){
                                 <tr key={el.id}>
                                     {edit && (
                                         <td>
-                                            <input
-                                                type="checkbox"
+                                            <CheckBox_SA
+                                                nameCheckBox={`agent-${el.id}`}
                                                 checked={selectedAgents.includes(el.id)}
-                                                onChange={(e) => toggleAgent(el.id, e.target.checked)}
+                                                onChange={(checked) => toggleAgent(el.id, checked)}
                                             />
                                         </td>
                                     )}

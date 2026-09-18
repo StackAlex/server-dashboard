@@ -5,6 +5,8 @@ import { RotateCw,
         Pause,
  } from "lucide-react";
 
+import {CheckBox_SA} from "../components/ui/CheckBox_By_StackALex/CheckBoxSA";
+
 export default function Docker_page() {
     return (
         <section className="page" id="docker">
@@ -49,7 +51,13 @@ export default function Docker_page() {
                     </thead>
                     <tbody>
                         <tr>
-                            <td></td>
+                            <td>
+                                {/* <CheckBox_SA
+                                    nameCheckBox={`container-${cont.id}`}
+                                    checked={selectedAgents.includes(cont.id)}
+                                    onChange={(checked) => toggleContainer(cont.id, checked)}
+                                /> */}
+                            </td>
                             <td>Container 1</td>
                             <td>Image 1</td>
                             <td>Running</td>

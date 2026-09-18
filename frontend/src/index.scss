@@ -523,4 +523,8 @@ body {
         flex-direction: row-reverse;
         justify-content: flex-start;
     }
+    .docker_actions_container {
+        display: flex;
+        gap: 10px;
+    }
 }

@@ -1,7 +1,8 @@
 import { RotateCw,
         SquarePlus,
         Pencil,
-        Trash2
+        Trash2,
+        Pause,
  } from "lucide-react";
 
 export default function Docker_page() {
@@ -52,17 +53,17 @@ export default function Docker_page() {
                             <td>Running</td>
                             <td>8080</td>
                             <td>
-                                <button className="docker_action btn_icon" >
-                                    <Pencil size={18}/>
-                                    Edit
-                                </button>
-                                <button className="docker_action btn_icon" >
-                                    Stop
-                                </button>
-                                <button className="docker_action" >
-                                    <Trash2 size={18}/>
-                                    Remove
-                                </button>
+                                <div className="docker_actions_container">
+                                    <button className="docker_action btn_icon" >
+                                        <Pencil size={18}/>
+                                    </button>
+                                    <button className="docker_action btn_icon" >
+                                        <Pause size={18}/>
+                                    </button>
+                                    <button className="docker_action btn_icon" >
+                                        <Trash2 size={18}/>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     </tbody>

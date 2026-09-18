@@ -253,7 +253,6 @@ body {
             transition: all .2s;
             display: flex;
             width: min-content;
-            margin: 0 auto;
             text-wrap: nowrap;
         }
 
@@ -514,5 +513,14 @@ body {
                 gap: 10px;
             }
         }
+    }
+}
+#docker{
+    .docker_actions {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-direction: row-reverse;
+        justify-content: flex-start;
     }
 }

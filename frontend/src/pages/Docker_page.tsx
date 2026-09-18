@@ -11,23 +11,23 @@ export default function Docker_page() {
             <div className="docker_window">
                 <h2>Docker Page</h2>
                 <div className="docker_actions">
-                    <button className="docker_action" >
+                    <button className="docker_action btn_icon" >
                         <RotateCw size={18}/>
                         Update
                     </button>
-                    <button className="docker_action" >
+                    <button className="docker_action btn_icon" >
                         <SquarePlus size={18}/>
                         Add Container
                     </button>
-                    <button className="docker_action" >
+                    <button className="docker_action btn_icon" >
                         <SquarePlus size={18}/>
                         Stop
                     </button>
-                    <button className="docker_action" >
+                    <button className="docker_action btn_icon" >
                         <Trash2 size={18}/>
                         Remove
                     </button>
-                    <button className="docker_action" >
+                    <button className="docker_action btn_icon" >
                         <Pencil size={18}/>
                         Edit
                     </button>
@@ -52,12 +52,11 @@ export default function Docker_page() {
                             <td>Running</td>
                             <td>8080</td>
                             <td>
-                                <button className="docker_action" >
+                                <button className="docker_action btn_icon" >
                                     <Pencil size={18}/>
                                     Edit
                                 </button>
-                                <button className="docker_action" >
-                                    <SquarePlus size={18}/>
+                                <button className="docker_action btn_icon" >
                                     Stop
                                 </button>
                                 <button className="docker_action" >

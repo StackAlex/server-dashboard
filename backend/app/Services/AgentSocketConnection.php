@@ -1,7 +1,8 @@
 <?php
 
 namespace App\Services;
-use SplMutex;
+
+use Illuminate\Support\Facades\Log;
 
 class AgentSocketConnection
 {
@@ -16,7 +17,7 @@ class AgentSocketConnection
     public string $type;
 
     public ?string $targetAgentUuid = null;
-    
+
     public ?string $terminalSessionId = null;
 
     public function __construct(
@@ -27,11 +28,24 @@ class AgentSocketConnection
         $this->id = $id;
         $this->socket = $socket;
         $this->type = $type;
+
+        // Socket должен работать без дополнительной буферизации.
+        if (is_resource($this->socket)) {
+            stream_set_blocking($this->socket, false);
+        }
     }
 
+    /**
+     * Отправить WebSocket text frame.
+     */
     public function send(array $payload): bool
     {
         if (!is_resource($this->socket)) {
+            Log::warning('[WebSocket] Cannot send: socket is not resource', [
+                'connection' => $this->id,
+                'type' => $payload['type'] ?? null,
+            ]);
+
             return false;
         }
 
@@ -41,6 +55,11 @@ class AgentSocketConnection
         );
 
         if ($json === false) {
+            Log::error('[WebSocket] JSON encode failed', [
+                'connection' => $this->id,
+                'error' => json_last_error_msg(),
+            ]);
+
             return false;
         }
 
@@ -50,13 +69,31 @@ class AgentSocketConnection
         $written = 0;
 
         while ($written < $total) {
+            $remaining = substr($frame, $written);
+
             $result = @fwrite(
                 $this->socket,
-                substr($frame, $written)
+                $remaining
             );
 
-            if ($result === false || $result === 0) {
+            if ($result === false) {
                 Log::error('[WebSocket] Failed to write frame', [
+                    'connection' => $this->id,
+                    'type' => $payload['type'] ?? null,
+                    'written' => $written,
+                    'total' => $total,
+                ]);
+
+                return false;
+            }
+
+            if ($result === 0) {
+                /*
+                 * Socket может временно не принимать данные.
+                 *
+                 * Не считаем это успешной отправкой.
+                 */
+                Log::warning('[WebSocket] fwrite returned 0', [
                     'connection' => $this->id,
                     'type' => $payload['type'] ?? null,
                     'written' => $written,
@@ -69,65 +106,278 @@ class AgentSocketConnection
             $written += $result;
         }
 
+        /*
+         * Принудительно сбрасываем PHP stream buffer.
+         */
+        @fflush($this->socket);
+
+        Log::debug('[WebSocket] Frame sent', [
+            'connection' => $this->id,
+            'type' => $payload['type'] ?? null,
+            'bytes' => $written,
+        ]);
+
         return true;
     }
 
-    public function receive(string $data): string
+    /**
+     * Попытаться извлечь ОДИН WebSocket frame из буфера.
+     *
+     * Возвращает:
+     *
+     * [
+     *     'payload' => string,
+     *     'consumed' => int,
+     * ]
+     *
+     * либо null, если полного frame ещё нет.
+     */
+    public function receiveFrame(string $buffer): ?array
     {
-        return $this->decodeFrame($data);
-    }
+        $bufferLength = strlen($buffer);
 
-    public function isOpen(): bool
-    {
-        return is_resource($this->socket) && !feof($this->socket);
-    }
-
-    public function close(): void
-    {
-        if (!is_resource($this->socket)) {
-            return;
+        /*
+         * Минимальный frame:
+         *
+         * 2 bytes header
+         * 4 bytes mask
+         *
+         * = 6 bytes
+         */
+        if ($bufferLength < 2) {
+            return null;
         }
 
-        $socket = $this->socket;
-        $this->socket = null;
+        $firstByte = ord($buffer[0]);
+        $secondByte = ord($buffer[1]);
 
-        @fclose($socket);
-    }
-    protected function handleTerminalOutput(
-        AgentSocketConnection $agent,
-        array $message
-    ): void {
-        $terminal = $this->findTerminalBySession($message);
+        $fin = ($firstByte & 0x80) !== 0;
+        $opcode = $firstByte & 0x0F;
 
-        if (!$terminal) {
-            \Log::warning('[terminal] Browser connection not found', [
-                'session_id' => $message['payload']['session_id'] ?? null,
+        $masked = ($secondByte & 0x80) !== 0;
+        $length = $secondByte & 0x7F;
+
+        /*
+         * Нам пока нужны обычные завершённые frames.
+         */
+        if (!$fin) {
+            Log::warning('[WebSocket] Fragmented frame is not supported', [
+                'connection' => $this->id,
             ]);
 
-            return;
+            return null;
         }
 
-        $payload = [
-            'type' => 'terminal:output',
-            'payload' => $message['payload'] ?? [],
-        ];
+        /*
+         * Close frame.
+         */
+        if ($opcode === 0x08) {
+            return [
+                'payload' => '',
+                'consumed' => 2,
+                'opcode' => $opcode,
+            ];
+        }
 
-        \Log::info('[terminal] Sending output to browser', [
-            'connection' => $terminal->id,
-            'session_id' => $message['payload']['session_id'] ?? null,
-            'data_length' => strlen(
-                $message['payload']['data'] ?? ''
-            ),
-        ]);
+        /*
+         * Ping.
+         */
+        if ($opcode === 0x09) {
+            $headerLength = 2;
 
-        $result = $terminal->send($payload);
+            if ($length === 126) {
+                $headerLength += 2;
+            } elseif ($length === 127) {
+                $headerLength += 8;
+            }
 
-        \Log::info('[terminal] Browser send result', [
-            'connection' => $terminal->id,
-            'result' => $result,
-        ]);
+            if ($masked) {
+                $headerLength += 4;
+            }
+
+            if ($bufferLength < $headerLength) {
+                return null;
+            }
+
+            return $this->parseFrame(
+                $buffer,
+                $opcode
+            );
+        }
+
+        /*
+         * Pong.
+         */
+        if ($opcode === 0x0A) {
+            return $this->parseFrame(
+                $buffer,
+                $opcode
+            );
+        }
+
+        /*
+         * Нас интересует text frame.
+         */
+        if ($opcode !== 0x01) {
+            Log::debug('[WebSocket] Ignoring unsupported opcode', [
+                'connection' => $this->id,
+                'opcode' => $opcode,
+            ]);
+
+            $frame = $this->parseFrame(
+                $buffer,
+                $opcode
+            );
+
+            return $frame;
+        }
+
+        return $this->parseFrame(
+            $buffer,
+            $opcode
+        );
     }
 
+    /**
+     * Старый интерфейс оставляем для совместимости.
+     *
+     * Важно:
+     * новый сервер должен использовать receiveFrame().
+     */
+    public function receive(string $data): string
+    {
+        $frame = $this->receiveFrame($data);
+
+        if ($frame === null) {
+            return '';
+        }
+
+        return $frame['payload'];
+    }
+
+    /**
+     * Разбор одного полного WebSocket frame.
+     */
+    private function parseFrame(
+        string $buffer,
+        int $opcode
+    ): ?array {
+        $bufferLength = strlen($buffer);
+
+        if ($bufferLength < 2) {
+            return null;
+        }
+
+        $secondByte = ord($buffer[1]);
+
+        $masked = ($secondByte & 0x80) !== 0;
+        $length = $secondByte & 0x7F;
+
+        $offset = 2;
+
+        /*
+         * Payload length = 126.
+         */
+        if ($length === 126) {
+            if ($bufferLength < $offset + 2) {
+                return null;
+            }
+
+            $unpacked = unpack(
+                'n',
+                substr($buffer, $offset, 2)
+            );
+
+            $length = $unpacked[1];
+
+            $offset += 2;
+        }
+
+        /*
+         * Payload length = 127.
+         *
+         * PHP 64-bit ожидается для нормальной работы
+         * с большими frames.
+         */
+        elseif ($length === 127) {
+            if ($bufferLength < $offset + 8) {
+                return null;
+            }
+
+            $parts = unpack(
+                'N2',
+                substr($buffer, $offset, 8)
+            );
+
+            $length = ($parts[1] << 32) | $parts[2];
+
+            $offset += 8;
+        }
+
+        /*
+         * Client -> Server WebSocket frames должны быть masked.
+         */
+        if (!$masked) {
+            Log::warning('[WebSocket] Received unmasked client frame', [
+                'connection' => $this->id,
+                'opcode' => $opcode,
+            ]);
+
+            return null;
+        }
+
+        /*
+         * Mask.
+         */
+        if ($bufferLength < $offset + 4) {
+            return null;
+        }
+
+        $mask = substr(
+            $buffer,
+            $offset,
+            4
+        );
+
+        $offset += 4;
+
+        /*
+         * Полный frame ещё не получен.
+         */
+        if ($bufferLength < $offset + $length) {
+            return null;
+        }
+
+        $payload = substr(
+            $buffer,
+            $offset,
+            $length
+        );
+
+        /*
+         * Unmask.
+         */
+        $decoded = '';
+
+        for ($i = 0; $i < $length; $i++) {
+            $decoded .= $payload[$i]
+                ^ $mask[$i % 4];
+        }
+
+        $consumed = $offset + $length;
+
+        return [
+            'payload' => $decoded,
+            'consumed' => $consumed,
+            'opcode' => $opcode,
+        ];
+    }
+
+    /**
+     * Создание server -> client text frame.
+     *
+     * Server frames НЕ должны быть masked.
+     */
     private function encodeFrame(string $payload): string
     {
         $length = strlen($payload);
@@ -140,77 +390,81 @@ class AgentSocketConnection
             $frame .= chr(126);
             $frame .= pack('n', $length);
         } else {
+            /*
+             * 64-bit payload length.
+             */
             $frame .= chr(127);
-            $frame .= pack('J', $length);
+
+            $high = intdiv($length, 4294967296);
+            $low = $length % 4294967296;
+
+            $frame .= pack(
+                'N2',
+                $high,
+                $low
+            );
         }
 
         return $frame . $payload;
     }
 
-    private function decodeFrame(string $data): string
+    /**
+     * Отвечаем на WebSocket ping.
+     */
+    public function sendPong(string $payload = ''): bool
     {
-        if (strlen($data) < 6) {
-            return '';
+        if (!is_resource($this->socket)) {
+            return false;
         }
 
-        $firstByte = ord($data[0]);
+        $length = strlen($payload);
 
-        // Пока обрабатываем только text frames.
-        if (($firstByte & 0x0F) !== 0x01) {
-            return '';
+        if ($length > 125) {
+            $payload = substr($payload, 0, 125);
+            $length = strlen($payload);
         }
 
-        $length = ord($data[1]) & 127;
-        $offset = 2;
+        $frame =
+            chr(0x8A) .
+            chr($length) .
+            $payload;
 
-        if ($length === 126) {
-            if (strlen($data) < 8) {
-                return '';
-            }
-
-            $length = unpack(
-                'n',
-                substr($data, 2, 2)
-            )[1];
-
-            $offset = 4;
-        } elseif ($length === 127) {
-            if (strlen($data) < 14) {
-                return '';
-            }
-
-            $length = unpack(
-                'J',
-                substr($data, 2, 8)
-            )[1];
-
-            $offset = 10;
-        }
-
-        if (strlen($data) < $offset + 4) {
-            return '';
-        }
-
-        $mask = substr($data, $offset, 4);
-        $offset += 4;
-
-        if (strlen($data) < $offset + $length) {
-            return '';
-        }
-
-        $payload = substr(
-            $data,
-            $offset,
-            $length
+        $written = @fwrite(
+            $this->socket,
+            $frame
         );
 
-        $decoded = '';
+        @fflush($this->socket);
 
-        for ($i = 0; $i < $length; $i++) {
-            $decoded .= $payload[$i]
-                ^ $mask[$i % 4];
+        return $written === strlen($frame);
+    }
+
+    public function isOpen(): bool
+    {
+        return is_resource($this->socket)
+            && !feof($this->socket);
+    }
+
+    public function close(): void
+    {
+        if (!is_resource($this->socket)) {
+            return;
         }
 
-        return $decoded;
+        $socket = $this->socket;
+
+        $this->socket = null;
+
+        @fclose($socket);
+    }
+
+    /**
+     * Получить raw socket.
+     *
+     * Используется сервером для stream_select().
+     */
+    public function getSocket()
+    {
+        return $this->socket;
     }
 }

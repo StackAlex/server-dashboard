@@ -33,8 +33,10 @@ export default function Docker_page() {
                         Edit
                     </button>
                 </div>
-                <table className="table_containers">
+                <h3 className="table_title">
                     <span className="tablename">📦 Containers</span>
+                </h3>
+                <table className="table_containers">
                     <thead>
                         <tr>
                             <th></th>

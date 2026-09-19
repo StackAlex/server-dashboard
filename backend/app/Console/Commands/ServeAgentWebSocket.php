@@ -58,9 +58,22 @@ class ServeAgentWebSocket extends Command
          * ];
          */
         $connections = [];
+        $lastPing = time();
 
         while (true) {
+            // WebSocket heartbeat
+            if (time() - $lastPing >= 30) {
+                foreach ($connections as $client) {
+                    if (
+                        isset($client['connection'])
+                        && $client['connection']->isOpen()
+                    ) {
+                        $client['connection']->sendPing();
+                    }
+                }
 
+                $lastPing = time();
+            }
             /*
              * =====================================================
              * 1. Новые подключения

@@ -438,6 +438,29 @@ class AgentSocketConnection
 
         return $written === strlen($frame);
     }
+    
+    public function sendPing(): bool
+    {
+        if (!$this->isOpen()) {
+            return false;
+        }
+
+        $frame = chr(0x89) . chr(0x00);
+
+        $written = @fwrite(
+            $this->socket,
+            $frame
+        );
+
+        if ($written !== false) {
+            @fflush($this->socket);
+            return true;
+        }
+
+        return false;
+    }
+
+    
 
     public function isOpen(): bool
     {
@@ -467,4 +490,6 @@ class AgentSocketConnection
     {
         return $this->socket;
     }
+
+    
 }

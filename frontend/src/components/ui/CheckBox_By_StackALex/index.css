@@ -1,3 +1,11 @@
+.CheckBox__SA {
+    position: relative;
+    display: block;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
 .CheckBox__SA input {
     appearance: none;
     -webkit-appearance: none;
@@ -5,52 +13,32 @@
 
     margin: 0;
     padding: 0;
-    border: 0;
-    background: none;
 
-    width: 20px;
-    height: 20px;
+    position: absolute;
+    inset: 0;
+
+    width: 100%;
+    height: 100%;
 
     cursor: pointer;
-    cursor:pointer;
-}
-.CheckBox__SA input:focus-visible {
-    outline: none;
-}
-.CheckBox__SA input:-webkit-autofill,
-.CheckBox__SA input:-webkit-autofill:hover,
-.CheckBox__SA input:-webkit-autofill:focus,
-.CheckBox__SA input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
-    -webkit-text-fill-color: inherit !important;
-    background-color: transparent !important;
-    transition: background-color 9999s ease-out 0s;
 }
 
-.CheckBox__SA input:-webkit-autofill,
-.CheckBox__SA input:-webkit-autofill:hover,
-.CheckBox__SA input:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0 1000px var(--input-bg) inset !important;
-    -webkit-text-fill-color: var(--text-color) !important;
-}
-
+/* Сам квадрат */
 .CheckBox__SA::before {
     content: "";
-    background: black;
-    width:18px;
-    height:18px;
-    top:0;
-    left:0;
-}
-.CheckBox__SA::after {
-    content: "";
-}
+    position: absolute;
 
-.CheckBox__SA:has(input:checked)::after {
-    content: "";
-    background: rgb(78, 140, 37);
-    width: 15px;
-    height: 15px;
+    width: 18px;
+    height: 18px;
+
     top: 0;
     left: 0;
+
+    background: #fff;
+    border-radius: 5px;
+}
+
+/* Когда checked */
+.CheckBox__SA:has(input:checked)::before {
+    background: rgb(78, 140, 37);
 }

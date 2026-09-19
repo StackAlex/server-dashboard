@@ -295,7 +295,7 @@ export default function Terminal_page() {
                 className="terminal_window"
                 style={{
                     width: "100%",
-                    height: "600px",
+                    height: "95%",
                     overflow: "hidden",
                 }}
                 onClick={(event) => {

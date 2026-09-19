@@ -22,7 +22,7 @@ export function CheckBox_SA({
     onChange
 }: CheckBoxProps) {
     return (
-        <div className="CheckBox__SA">
+        <label className="CheckBox__SA">
             <input
                 type="checkbox"
                 name={nameCheckBox}
@@ -30,6 +30,6 @@ export function CheckBox_SA({
                 checked={checked}
                 onChange={(e) => onChange(e.target.checked)}
             />
-        </div>
+        </label>
     );
 }

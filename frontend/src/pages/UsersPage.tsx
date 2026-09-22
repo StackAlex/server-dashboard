@@ -9,6 +9,8 @@ export default function Users_page() {
     const [users, setUsers] = useState<any[]>([]);
 
     useEffect(() => {
+        document.title = "Dashboard | Users";
+
         async function loadUsers() {
             try {
                 const { data } = await getUsers();

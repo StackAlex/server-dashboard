@@ -26,6 +26,8 @@ export default function Terminal_page() {
     };
 
     useEffect(() => {
+        document.title = "Dashboard | Terminal";
+
         if (!terminalRef.current) {
             return;
         }

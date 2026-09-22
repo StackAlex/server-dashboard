@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api/api";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 
 export default function Login() {
+    useEffect(() => {
+        document.title = "Dashboard | Login";
+    }, []);
     const navigate = useNavigate();
     const { setUser } = useAuth();
 

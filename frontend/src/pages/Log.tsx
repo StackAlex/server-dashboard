@@ -1,6 +1,10 @@
 import { Search } from "lucide-react";
+import { useEffect } from "react";
 
 export default function Log() {
+    useEffect(() => {
+        document.title = "Dashboard | Log";
+    }, []);
     const log = [
         {
             Timestamp: "2023-06-01 12:00:00",

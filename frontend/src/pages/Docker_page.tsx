@@ -5,9 +5,13 @@ import { RotateCw,
         Pause,
  } from "lucide-react";
 
+import {useEffect}from 'react';
 import {CheckBox_SA} from "../components/ui/CheckBox_By_StackALex/CheckBoxSA";
 
 export default function Docker_page() {
+    useEffect(() => {
+        document.title = "Dashboard | Docker";
+    }, []);
     return (
         <section className="page" id="docker">
             <h1>Docker</h1>

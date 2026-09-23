@@ -90,13 +90,6 @@ class ServeAgentWebSocket extends Command
                     $clientSocket,
                     false
                 );
-
-                /*
-                 * Не используем timestamp как ID.
-                 *
-                 * Два подключения могут появиться
-                 * в одну миллисекунду.
-                 */
                 $id = bin2hex(
                     random_bytes(16)
                 );
@@ -113,14 +106,6 @@ class ServeAgentWebSocket extends Command
                     'handshake' => '',
                     'ready' => false,
                     'path' => null,
-
-                    /*
-                     * Очень важно:
-                     *
-                     * TCP chunk != WebSocket frame.
-                     *
-                     * Здесь храним недополученные данные.
-                     */
                     'buffer' => '',
                 ];
 
@@ -132,15 +117,6 @@ class ServeAgentWebSocket extends Command
                     "Client connected: {$id}"
                 );
             }
-
-            /*
-             * =====================================================
-             * 2. stream_select()
-             * =====================================================
-             *
-             * Вместо постоянного fread() каждого сокета
-             * используем нормальное ожидание данных.
-             */
 
             $readSockets = [
                 $serverSocket,

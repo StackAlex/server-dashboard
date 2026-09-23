@@ -318,14 +318,6 @@ export default function Terminal_page() {
                     <button className="btn_icon" onClick={() => setTerminalStart(false)}><Square size={18}/>Stop terminal</button>
                 )}
             </div>
-            <ListSelect_By_StackAlex
-                list={allAgentId?.allAgents ?? []}
-                itemOptions = "agent_id" 
-                itemName="name"
-                onChange={(agent) => {
-                    setSelectedAgent(agent.agent_id as string);
-                }}
-            />
             <div
                 ref={terminalRef}
                 className="terminal_window"

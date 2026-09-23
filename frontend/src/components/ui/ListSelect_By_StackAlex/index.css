@@ -1,0 +1,337 @@
+.ListInput_By_StackAlex {
+
+    position: relative;
+
+    width: 260px;
+
+    background: rgba(20, 20, 25, 0.85);
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    border-radius: 12px;
+
+    box-sizing: border-box;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+
+    z-index: 10;
+}
+
+
+/* =========================
+   HEADER
+========================= */
+
+.ListInput_By_StackAlex .SoloSelectHeader {
+
+    min-height: 44px;
+
+    display: flex;
+
+    flex-direction: row;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    padding: 0 12px;
+
+    box-sizing: border-box;
+
+    cursor: pointer;
+
+    user-select: none;
+}
+
+
+.ListInput_By_StackAlex:hover {
+
+    border-color: rgba(255, 255, 255, 0.18);
+}
+
+
+.ListInput_By_StackAlex.isOpen {
+
+    border-color: rgba(150, 100, 255, 0.7);
+
+    box-shadow:
+        0 0 0 3px rgba(150, 100, 255, 0.1);
+}
+
+
+/* =========================
+   SELECTED
+========================= */
+
+.ListInput_By_StackAlex .select_item {
+
+    min-width: 0;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 6px;
+
+    overflow: hidden;
+}
+
+
+.ListInput_By_StackAlex .selectItem {
+
+    display: block;
+
+    max-width: 190px;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+
+    color: #fff;
+
+    font-size: 14px;
+
+    font-weight: 500;
+}
+
+
+.ListInput_By_StackAlex .selectPlaceholder {
+
+    color: rgba(255, 255, 255, 0.4);
+
+    font-size: 14px;
+}
+
+
+/* =========================
+   ARROW
+========================= */
+
+.ListInput_By_StackAlex button {
+
+    background: transparent;
+
+    border: none;
+
+    padding: 0;
+
+    margin: 0;
+
+    cursor: pointer;
+
+    color: rgba(255, 255, 255, 0.55);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+}
+
+
+.ListInput_By_StackAlex button:focus-visible {
+
+    outline: none;
+}
+
+
+.ListInput_By_StackAlex .selectArrow {
+
+    width: 24px;
+
+    height: 24px;
+
+    flex-shrink: 0;
+
+    pointer-events: none;
+}
+
+
+.ListInput_By_StackAlex .selectArrow span {
+
+    display: block;
+
+    font-size: 20px;
+
+    line-height: 1;
+
+    transition: transform 0.2s ease;
+}
+
+
+.ListInput_By_StackAlex.isOpen .selectArrow span {
+
+    transform: rotate(180deg);
+}
+
+
+/* =========================
+   OPTIONS
+========================= */
+
+.ListInput_By_StackAlex ul {
+
+    position: absolute;
+
+    top: calc(100% + 6px);
+
+    left: 0;
+
+    right: 0;
+
+    margin: 0;
+
+    padding: 6px;
+
+    list-style: none;
+
+    background: #17171d;
+
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    border-radius: 10px;
+
+    box-sizing: border-box;
+
+    max-height: 240px;
+
+    overflow-y: auto;
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transform: translateY(-5px);
+
+    pointer-events: none;
+
+    transition:
+        opacity 0.18s ease,
+        transform 0.18s ease,
+        visibility 0.18s ease;
+
+    box-shadow:
+        0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+
+.ListInput_By_StackAlex ul.open {
+
+    opacity: 1;
+
+    visibility: visible;
+
+    transform: translateY(0);
+
+    pointer-events: auto;
+}
+
+
+/* =========================
+   OPTION
+========================= */
+
+.ListInput_By_StackAlex li {
+
+    min-height: 38px;
+
+    padding: 0 10px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: space-between;
+
+    gap: 10px;
+
+    border-radius: 7px;
+
+    box-sizing: border-box;
+
+    color: rgba(255, 255, 255, 0.7);
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.15s ease,
+        color 0.15s ease;
+}
+
+
+.ListInput_By_StackAlex li:hover {
+
+    background: rgba(255, 255, 255, 0.07);
+
+    color: #fff;
+}
+
+
+.ListInput_By_StackAlex li.selected {
+
+    background: rgba(150, 100, 255, 0.14);
+
+    color: #fff;
+}
+
+
+/* =========================
+   OPTION TEXT
+========================= */
+
+.ListInput_By_StackAlex .optionText {
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+
+    white-space: nowrap;
+}
+
+
+.ListInput_By_StackAlex .optionCheck {
+
+    color: #a978ff;
+
+    font-size: 15px;
+
+    flex-shrink: 0;
+}
+
+
+/* =========================
+   SCROLLBAR
+========================= */
+
+.ListInput_By_StackAlex ul::-webkit-scrollbar {
+
+    width: 5px;
+}
+
+
+.ListInput_By_StackAlex ul::-webkit-scrollbar-track {
+
+    background: transparent;
+}
+
+
+.ListInput_By_StackAlex ul::-webkit-scrollbar-thumb {
+
+    background: rgba(255, 255, 255, 0.15);
+
+    border-radius: 10px;
+}
+
+
+.ListInput_By_StackAlex ul::-webkit-scrollbar-thumb:hover {
+
+    background: rgba(255, 255, 255, 0.25);
+}

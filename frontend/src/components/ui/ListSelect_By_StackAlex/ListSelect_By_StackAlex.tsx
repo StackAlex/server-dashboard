@@ -4,10 +4,11 @@
 // Rules:
 // 1. You cannot delete this comment
 // 2. You cannot rename classes in this file, only add classes
-// 3. You can edit file index.css 
+// 3. You can edit file index.css
 // =====================================
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import "./index.css";
 
 interface ListSelectProps {
     list: Record<string, any>[];
@@ -26,12 +27,16 @@ export default function ListSelect_By_StackAlex({
 }: ListSelectProps) {
 
     const [listSelect, setListSelect] = useState<Record<string, any>[]>([]);
+    const [isOpen, setIsOpen] = useState(false);
+
+    const selectRef = useRef<HTMLDivElement>(null);
 
     function hundleSelect(option: Record<string, any>) {
 
         if (MultiSelect) {
 
             setListSelect(prev => {
+
                 const newList = prev.includes(option)
                     ? prev.filter(item => item !== option)
                     : [...prev, option];
@@ -54,44 +59,118 @@ export default function ListSelect_By_StackAlex({
                     ? option[itemOptions]
                     : option
             );
+
+            setIsOpen(false);
         }
     }
 
+    useEffect(() => {
+
+        function handleClickOutside(event: MouseEvent) {
+
+            if (
+                selectRef.current &&
+                !selectRef.current.contains(event.target as Node)
+            ) {
+                setIsOpen(false);
+            }
+
+        }
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener(
+                "mousedown",
+                handleClickOutside
+            );
+        };
+
+    }, []);
+
     return (
         <div
+            ref={selectRef}
             className={`ListInput_By_StackAlex ${
                 MultiSelect ? "MoreSelect" : "SoloSelect"
-            }`}
+            } ${isOpen ? "isOpen" : ""}`}
         >
 
-            <div className="select_item">
+            {/* HEADER */}
 
-                {listSelect.map((item, index) => (
-                    <span
-                        className="selectItem"
-                        key={index}
-                    >
-                        {itemName
-                            ? item[itemName]
-                            : item
-                        }
-                    </span>
-                ))}
+            <div
+                className="SoloSelectHeader"
+                onClick={() => setIsOpen(prev => !prev)}
+            >
+
+                <div className="select_item">
+
+                    {listSelect.length > 0 ? (
+
+                        listSelect.map((item, index) => (
+                            <span
+                                className="selectItem"
+                                key={index}
+                            >
+                                {itemName
+                                    ? item[itemName]
+                                    : item
+                                }
+                            </span>
+                        ))
+
+                    ) : (
+
+                        <span className="selectPlaceholder">
+                            Select...
+                        </span>
+
+                    )}
+
+                </div>
+
+                <button
+                    type="button"
+                    className="selectArrow"
+                    aria-label="Open select"
+                >
+                    <span>⌄</span>
+                </button>
 
             </div>
 
-            <ul>
-                {list.map((option, index) => (
-                    <li
-                        key={index}
-                        onClick={() => hundleSelect(option)}
-                    >
-                        {itemName
-                            ? option[itemName]
-                            : option
-                        }
-                    </li>
-                ))}
+            {/* OPTIONS */}
+
+            <ul className={isOpen ? "open" : ""}>
+
+                {list.map((option, index) => {
+
+                    const selected = listSelect.includes(option);
+
+                    return (
+                        <li
+                            key={index}
+                            className={selected ? "selected" : ""}
+                            onClick={() => hundleSelect(option)}
+                        >
+
+                            <span className="optionText">
+                                {itemName
+                                    ? option[itemName]
+                                    : option
+                                }
+                            </span>
+
+                            {selected && (
+                                <span className="optionCheck">
+                                    ✓
+                                </span>
+                            )}
+
+                        </li>
+                    );
+                })}
+
             </ul>
 
         </div>

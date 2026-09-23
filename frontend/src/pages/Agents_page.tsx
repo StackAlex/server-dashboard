@@ -171,8 +171,10 @@ export default function AgentPage(){
                                         <td>
                                             <CheckBox_SA
                                                 nameCheckBox={`agent-${el.id}`}
-                                                checked={selectedAgents.includes(el.id)}
-                                                onChange={(checked) => toggleAgent(el.id, checked)}
+                                                checked={selectedAgents.includes(Number(el.id))}
+                                                onChange={(checked) =>
+                                                    toggleAgent(Number(el.id), checked)
+                                                }
                                             />
                                         </td>
                                     )}

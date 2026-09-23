@@ -128,47 +128,46 @@ class AgentWebSocketService
 
     protected function handleAuth(
         AgentSocketConnection $connection,
-        array $message
+        array $payload
     ): void {
-        $payload = $message['payload'] ?? $message;
-
-        $name = $payload['agent_name'] ?? null;
+        $agentUuid = $payload['agent_id'] ?? null;
         $token = $payload['token'] ?? null;
 
-        if (!$token) {
-            Log::warning(
-                'Agent auth failed: missing token'
-            );
+        if (!$agentUuid || !$token) {
+            $connection->send([
+                'type' => 'auth:error',
+                'payload' => [
+                    'message' => 'Missing agent credentials',
+                ],
+            ]);
 
             $connection->close();
 
             return;
         }
 
-        if (!$name) {
-            Log::warning(
-                'Agent auth failed: missing agent name'
-            );
+        $agent = ServerAgent::where('uuid', $agentUuid)->first();
+
+        if (!$agent) {
+            $connection->send([
+                'type' => 'auth:error',
+                'payload' => [
+                    'message' => 'Agent not found',
+                ],
+            ]);
 
             $connection->close();
 
             return;
         }
 
-        $agent = ServerAgent::where(
-            'name',
-            $name
-        )->first();
-
-        if (
-            !$agent ||
-            !$agent->enabled ||
-            !Hash::check($token, $agent->token)
-        ) {
-            Log::warning(
-                'Agent auth failed',
-                ['name' => $name]
-            );
+        if (!Hash::check($token, $agent->token)) {
+            $connection->send([
+                'type' => 'auth:error',
+                'payload' => [
+                    'message' => 'Invalid token',
+                ],
+            ]);
 
             $connection->close();
 
@@ -176,30 +175,55 @@ class AgentWebSocketService
         }
 
         $connection->authenticated = true;
+        $connection->agentUuid = $agentUuid;
 
-        $connection->agentUuid =
-            $payload['agent_id'] ??
-            $agent->agent_id;
-
-        if (
-            $agent->agent_id !==
-            $connection->agentUuid
-        ) {
-            $agent->update([
-                'agent_id' =>
-                    $connection->agentUuid,
-            ]);
-        }
+        $this->replaceAgentConnection(
+            $agentUuid,
+            $connection
+        );
 
         $connection->send([
-            'type' => 'auth_ok',
+            'type' => 'auth:success',
             'payload' => [
-                'agent_id' =>
-                    $connection->agentUuid,
+                'agent_id' => $agentUuid,
             ],
         ]);
-    }
 
+        Log::info('[Agent] Authenticated', [
+            'agent_id' => $agentUuid,
+            'connection' => $connection->id,
+        ]);
+    }
+    public function replaceAgentConnection(
+        string $agentUuid,
+        AgentSocketConnection $newConnection
+    ): void {
+        foreach ($this->connections as $connection) {
+            if (
+                $connection->agentUuid === $agentUuid
+                && $connection !== $newConnection
+            ) {
+                Log::info('[Agent] Replacing old connection', [
+                    'agent_uuid' => $agentUuid,
+                    'old_connection' => $connection->id,
+                    'new_connection' => $newConnection->id,
+                ]);
+
+                $connection->send([
+                    'type' => 'connection:replaced',
+                    'payload' => [
+                        'message' => 'Connection replaced by a new connection',
+                    ],
+                ]);
+
+                $connection->close();
+
+                unset($this->connections[$connection->id]);
+            }
+        }
+
+        $this->registerConnection($newConnection);
+    }
     protected function handleStats(
         AgentSocketConnection $connection,
         array $message

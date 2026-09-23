@@ -31,3 +31,5 @@ Route::get('/allAgents', [AgentController::class, 'getAll'])->middleware('auth:s
 Route::post('/saveAgent', [AgentController::class, 'saveAgent'])->middleware('auth:sanctum'); 
 
 Route::post('/deleteAgent', [AgentController::class, 'deleteAgent'])->middleware('auth:sanctum'); 
+
+Route::get('/docker/containers', [Docker::class, 'getContainers'])->middleware('auth:sanctum');

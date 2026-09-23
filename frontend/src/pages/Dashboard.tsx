@@ -82,6 +82,7 @@ export default function Dashboard() {
     const [cpuHistory, setCpuHistory] = useState<CpuPoint[]>([]);
 
     useEffect(() => {
+        document.title = "Dashboard By StackAlex";
         if (!agentStats) return;
 
         const nextStats = agentStats as Stats;

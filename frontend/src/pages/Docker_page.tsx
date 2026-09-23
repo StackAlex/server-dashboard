@@ -3,21 +3,39 @@ import { RotateCw,
         Pencil,
         Trash2,
         Pause,
+        PenOff,
+        Square,
+        Play,
  } from "lucide-react";
 
-import {useEffect}from 'react';
+import {useEffect, useState}from 'react';
 import {CheckBox_SA} from "../components/ui/CheckBox_By_StackALex/CheckBoxSA";
+import { allContainers } from "../api/docker";
 
-export default function Docker_page() {
+export default async function Docker_page() {
+
     useEffect(() => {
         document.title = "Dashboard | Docker";
+
     }, []);
+
+    const dataContainers = await allContainers();
+
+    console.log(dataContainers);
+
+    const [editCon, setEditCon] = useState(false);
+
     return (
         <section className="page" id="docker">
             <h1>Docker</h1>
             <div className="docker_window">
                 <h2>Docker Page</h2>
                 <div className="docker_actions">
+                    <button className="docker_action btn_icon" 
+                        onClick={()=>setEditCon(!editCon)}
+                    >
+                        {editCon ? (<><PenOff size={18}/>Cancel</>) : (<><Pencil size={18}/>Edit</>)}
+                    </button>
                     <button className="docker_action btn_icon" >
                         <RotateCw size={18}/>
                         Update
@@ -27,17 +45,30 @@ export default function Docker_page() {
                         Add Container
                     </button>
                     <button className="docker_action btn_icon" >
-                        <SquarePlus size={18}/>
+                        <Square size={18}/>
                         Stop
                     </button>
                     <button className="docker_action btn_icon" >
-                        <Trash2 size={18}/>
-                        Remove
+                        <Pause size={18}/>
+                        Pause
                     </button>
                     <button className="docker_action btn_icon" >
-                        <Pencil size={18}/>
-                        Edit
+                        <Play size={18}/>
+                        Run
                     </button>
+                    {editCon && (
+                        <>
+                            <button className="docker_action btn_icon" >
+                                <RotateCw size={18}/>
+                                Update
+                            </button>
+                            <button className="docker_action btn_icon" >
+                                <Trash2 size={18}/>
+                                Remove
+                            </button>
+                        </>
+                    )}
+
                 </div>
                 <h3 className="table_title">
                     <span className="tablename">📦 Containers</span>

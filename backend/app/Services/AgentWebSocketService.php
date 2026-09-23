@@ -74,7 +74,10 @@ class AgentWebSocketService
         switch ($message['type'] ?? '') {
 
             case 'auth':
-                $this->handleAuth($connection, $message);
+                $this->handleAuth(
+                    $connection,
+                    $message['payload'] ?? []
+                );
                 break;
 
             case 'stats':

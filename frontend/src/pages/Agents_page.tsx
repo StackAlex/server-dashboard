@@ -64,10 +64,15 @@ export default function AgentPage(){
         try { 
             const data = await saveAgent(agentName, agentToken);
 
+            setAgentName("");
+            setAgentToken("");
+            setPopup(false);
             console.log(data);
 
         } catch (error) {
             console.error(error);
+            setAgentName("");
+            setAgentToken("");
         }
     }
 

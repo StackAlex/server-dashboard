@@ -341,7 +341,7 @@ export default function Terminal_page() {
                 ref={terminalRef}
                 className="terminal_window"
                 style={{
-                    width: "100%",
+                    width: "calc(100% - 40px)",
                     height: "95%",
                     overflow: "hidden",
                 }}

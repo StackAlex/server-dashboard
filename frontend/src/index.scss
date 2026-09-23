@@ -476,6 +476,11 @@ body {
 }
 #terminal{
     height: 90%;
+    .HeadTerminal {
+        display: flex;
+        justify-content: space-between;
+        margin: 20px 0 40px 0;
+    }
     .terminal_window{
         background-color: rgba(0, 0, 0, 1);
         border: 1px solid var(--text-color);

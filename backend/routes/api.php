@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TerminalController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\Doker;
 use App\Services\SystemMonitorService;
 
 Route::middleware("auth:sanctum")->get("/user", function (Request $request) {
@@ -32,4 +33,5 @@ Route::post('/saveAgent', [AgentController::class, 'saveAgent'])->middleware('au
 
 Route::post('/deleteAgent', [AgentController::class, 'deleteAgent'])->middleware('auth:sanctum'); 
 
-Route::get('/docker/containers', [Docker::class, 'getContainers'])->middleware('auth:sanctum');
+Route::get('/docker/containers', [Docker::class, 'getContainers'])
+    ->middleware('auth:sanctum');

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\AgentWebSocketService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class Docker extends Controller
 {
@@ -11,8 +12,16 @@ class Docker extends Controller
         protected AgentWebSocketService $webSocketService
     ) {}
 
-    public function getContainers(string $agentUuid): JsonResponse
+    public function getContainers(Request $request): JsonResponse
     {
+        $agentUuid = $request->query('agent_id');
+
+        if (!$agentUuid) {
+            return response()->json([
+                'error' => 'agent_id is required',
+            ], 422);
+        }
+
         $requestId = bin2hex(random_bytes(16));
 
         $connection = $this->webSocketService

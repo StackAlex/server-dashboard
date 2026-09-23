@@ -342,7 +342,7 @@ export default function Terminal_page() {
                 className="terminal_window"
                 style={{
                     width: "calc(100% - 40px)",
-                    height: "95%",
+                    height: "80%",
                     overflow: "hidden",
                 }}
                 onClick={(event) => {

@@ -1,16 +1,25 @@
 import { useEffect, useRef, useState } from "react";
+import {Play, Square
+} from 'lucide-react'
+import { useQuery } from "@tanstack/react-query";
 import { Terminal } from "xterm";
 import { FitAddon } from "xterm-addon-fit";
+import { allAgent } from "../api/agent";
 import "xterm/css/xterm.css";
-
-const AGENT_ID = "100f0685-688b-46e9-b588-fcd3055865c7";
+import ListSelect_By_StackAlex from "../components/ui/ListSelect_By_StackAlex/ListSelect_By_StackAlex";
 
 export default function Terminal_page() {
     const terminalRef = useRef<HTMLDivElement>(null);
     const wsRef = useRef<WebSocket | null>(null);
     const sessionIdRef = useRef<string | null>(null);
-
+    const { data: allAgentId, isLoading } = useQuery({
+        queryKey: ["agents"],
+        queryFn: allAgent,
+    });
+    console.log(allAgentId)
     const [connected, setConnected] = useState(false);
+    const [terminalStart, setTerminalStart] = useState(false);
+    const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
 
     const generateRequestId = () => {
         if (
@@ -27,7 +36,9 @@ export default function Terminal_page() {
 
     useEffect(() => {
         document.title = "Dashboard | Terminal";
-
+        if (terminalStart) {
+            return;
+        }
         if (!terminalRef.current) {
             return;
         }
@@ -79,7 +90,7 @@ export default function Terminal_page() {
                     request_id: generateRequestId(),
 
                     payload: {
-                        agent_id: AGENT_ID,
+                        agent_id: selectedAgent,
                         cols: terminal.cols,
                         rows: terminal.rows,
                     },
@@ -292,6 +303,29 @@ export default function Terminal_page() {
                 width: "100%",
             }}
         >
+            <div className="HeadTerminal">
+                <ListSelect_By_StackAlex
+                    list={allAgentId?.allAgents ?? []}
+                    itemOptions = "agent_id" 
+                    itemName="name"
+                    onChange={(agent) => {
+                        setSelectedAgent(agent.agent_id as string);
+                    }}
+                />
+                {!terminalStart ? (
+                    <button className="btn_icon" onClick={() => setTerminalStart(true)}><Play size={18}/>Start terminal</button>
+                ):(
+                    <button className="btn_icon" onClick={() => setTerminalStart(false)}><Square size={18}/>Stop terminal</button>
+                )}
+            </div>
+            <ListSelect_By_StackAlex
+                list={allAgentId?.allAgents ?? []}
+                itemOptions = "agent_id" 
+                itemName="name"
+                onChange={(agent) => {
+                    setSelectedAgent(agent.agent_id as string);
+                }}
+            />
             <div
                 ref={terminalRef}
                 className="terminal_window"

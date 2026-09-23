@@ -46,22 +46,26 @@ class AgentController extends Controller
         return response()->json(['allAgents' => $agents]);
     }
 
-    public function saveAgent(Request $request){
+    public function saveAgent(Request $request)
+    {
         $data = $request->validate([
             'name' => 'required|string|max:255',
             'token' => 'required|string',
         ]);
 
+        $agentId = (string) \Illuminate\Support\Str::uuid();
+
         ServerAgent::create([
             'user_id'  => Auth::id(),
-            'agent_id' => (string) \Illuminate\Support\Str::uuid(),
+            'agent_id' => $agentId,
             'name'     => $data['name'],
             'token'    => Hash::make($data['token']),
             'enabled'  => true,
         ]);
 
         return response()->json([
-            'message' => 'Server Agent Created'
+            'message' => 'Server Agent Created',
+            'agent_id' => $agentId,
         ]);
     }
 

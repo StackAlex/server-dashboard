@@ -36,9 +36,15 @@ export default function Terminal_page() {
 
     useEffect(() => {
         document.title = "Dashboard | Terminal";
-        if (terminalStart) {
+
+        if (!terminalStart) {
             return;
         }
+
+        if (!selectedAgent) {
+            return;
+        }
+
         if (!terminalRef.current) {
             return;
         }
@@ -293,7 +299,7 @@ export default function Terminal_page() {
             wsRef.current = null;
             sessionIdRef.current = null;
         };
-    }, []);
+    }, [terminalStart, selectedAgent]);
 
     return (
         <section
@@ -306,14 +312,27 @@ export default function Terminal_page() {
             <div className="HeadTerminal">
                 <ListSelect_By_StackAlex
                     list={allAgentId?.allAgents ?? []}
-                    itemOptions = "agent_id" 
+                    itemOptions="agent_id"
                     itemName="name"
-                    onChange={(agent) => {
-                        setSelectedAgent(agent.agent_id as string);
+                    onChange={(agentId) => {
+                        setSelectedAgent(agentId);
                     }}
                 />
                 {!terminalStart ? (
-                    <button className="btn_icon" onClick={() => setTerminalStart(true)}><Play size={18}/>Start terminal</button>
+                    <button
+                        className="btn_icon"
+                        onClick={() => {
+                            if (!selectedAgent) {
+                                alert("Select an agent first");
+                                return;
+                            }
+
+                            setTerminalStart(true);
+                        }}
+                    >
+                        <Play size={18} />
+                        Start terminal
+                    </button>
                 ):(
                     <button className="btn_icon" onClick={() => setTerminalStart(false)}><Square size={18}/>Stop terminal</button>
                 )}

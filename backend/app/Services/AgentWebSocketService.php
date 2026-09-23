@@ -146,7 +146,7 @@ class AgentWebSocketService
             return;
         }
 
-        $agent = ServerAgent::where('uuid', $agentUuid)->first();
+        $agent = ServerAgent::where('agent_id', $agentUuid)->first();
 
         if (!$agent) {
             $connection->send([

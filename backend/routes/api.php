@@ -5,7 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TerminalController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\SettingsController;
-use App\Http\Controllers\Doker;
+use App\Http\Controllers\Docker;
 use App\Services\SystemMonitorService;
 
 Route::middleware("auth:sanctum")->get("/user", function (Request $request) {

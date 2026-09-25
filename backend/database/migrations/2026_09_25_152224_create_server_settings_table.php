@@ -15,13 +15,15 @@ return new class extends Migration
 
             $table->jsonb('value')->default('[]');
 
+            $table->jsonb('options')->default('[]');
+
             $table->enum('type', [
                 'toggle',
                 'multi_select',
                 'one_select',
                 'input',
             ]);
-
+            
             $table->foreignId('update_by')
                 ->nullable()
                 ->constrained('users')

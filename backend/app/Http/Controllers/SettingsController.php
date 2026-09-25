@@ -25,10 +25,30 @@ class SettingsController extends Controller
      */
     public function dashboardSettings()
     {
+        getAllOptions();
+
         $settings = ServerSettings::all();
 
         return response()->json([
             'settingsServer' => $settings,
         ]);
+    }
+    
+    private function getAllOptions(){
+        getAgentsOptions();
+    }
+    private function getAgentsOptions(){
+        $agents = ServerAgent::where('enabled', true)
+            ->get([
+                'id',
+                'name',
+            ]);
+        
+        $settings = ServerSettings::where('settings', 'Main_agent')->first();
+        if (!$settings) {
+            return;
+        }
+        $settings->options = $agents;
+        $settings->save();
     }
 }

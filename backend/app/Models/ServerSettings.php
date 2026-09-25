@@ -14,5 +14,6 @@ class ServerSettings extends Model
 
     protected $casts = [
         'value' => 'array',
+        'options' => 'array',
     ];
 }

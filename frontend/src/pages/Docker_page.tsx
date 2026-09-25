@@ -19,9 +19,9 @@ export default async function Docker_page() {
 
     }, []);
 
-    const dataContainers = await allContainers();
+    // const dataContainers = await allContainers();
 
-    console.log(dataContainers);
+    // console.log(dataContainers);
 
     const [editCon, setEditCon] = useState(false);
 

@@ -36,53 +36,56 @@ export default function ListSelect_By_StackAlex({
     const [isOpen, setIsOpen] = useState(false);
 
     const selectRef = useRef<HTMLDivElement>(null);
+    function getItemLabel(item: any) {
+        if (itemName) {
+            return item[itemName];
+        }
 
+        if (typeof item === "object" && item !== null) {
+            return item.label ?? item.value ?? "";
+        }
+
+        return item;
+    }
     /*
      * Синхронизация выбранных элементов
      * с value, который пришёл извне.
      */
     useEffect(() => {
-
         if (value === undefined) {
             return;
         }
 
         if (MultiSelect) {
-
-            const values = Array.isArray(value)
-                ? value
-                : [];
+            const values = Array.isArray(value) ? value : [value];
 
             const selected = list.filter(option => {
-
                 const optionValue = itemOptions
                     ? option[itemOptions]
                     : option;
 
-                return values.includes(optionValue);
+                return values.some(
+                    selectedValue => String(selectedValue) === String(optionValue)
+                );
             });
 
             setListSelect(selected);
-
         } else {
-
             const selectedValue = Array.isArray(value)
                 ? value[0]
                 : value;
 
             const selected = list.find(option => {
-
                 const optionValue = itemOptions
                     ? option[itemOptions]
                     : option;
 
-                return optionValue === selectedValue;
+                return String(selectedValue) === String(optionValue);
             });
 
             setListSelect(selected ? [selected] : []);
         }
-
-    }, [value, list, MultiSelect, itemOptions]);
+    }, [value, list, itemOptions, MultiSelect]);
 
     function hundleSelect(option: Record<string, any>) {
 
@@ -165,10 +168,7 @@ export default function ListSelect_By_StackAlex({
                                 className="selectItem"
                                 key={index}
                             >
-                                {itemName
-                                    ? item[itemName]
-                                    : item
-                                }
+                                {getItemLabel(item)}
                             </span>
                         ))
 

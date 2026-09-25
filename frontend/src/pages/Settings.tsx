@@ -180,11 +180,16 @@ export default function Settings() {
                                     {setting.type === "one_select" && (
                                         <ListSelect_By_StackAlex
                                             list={setting.options ?? []}
+                                            itemOptions="value"
+                                            itemName="label"
+                                            MultiSelect={false}
                                             value={settings[setting.settings] ?? []}
                                             onChange={(value) =>
                                                 handleSettingChange(
                                                     setting.settings,
-                                                    value
+                                                    Array.isArray(value)
+                                                        ? value.map(String)
+                                                        : [String(value)]
                                                 )
                                             }
                                         />

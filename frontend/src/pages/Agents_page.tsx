@@ -16,8 +16,8 @@ import { SecretInput_By_StackAlex } from "../components/ui/SecretInput_By_StackA
 import type { Agent } from "../api/agent"
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import {CheckBox_By_StackAlex} from "../components/ui/CheckBox_By_StackALex/CheckBox_By_StackAlex";
-import { ToolTip_By_StackAlex } from "../components/ui/ToolTip_By_StackAlex/ToolTip_By_StackAlex";
+import { CheckBox_By_StackAlex } from "../components/ui/CheckBox_By_StackALex/CheckBox_By_StackAlex";
+import ToolTip_By_StackAlex from "../components/ui/ToolTip_By_StackAlex/ToolTip_By_StackAlex";
 
 export default function AgentPage(){
     

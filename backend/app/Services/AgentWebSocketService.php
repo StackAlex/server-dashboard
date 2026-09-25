@@ -293,7 +293,13 @@ class AgentWebSocketService
         $agent = $this->findAgentConnection(
             $agentId
         );
-
+        Log::info('[Terminal] Agent lookup', [
+            'agent_id' => $agentId,
+            'found' => $agent !== null,
+            'connection_id' => $agent?->id,
+            'authenticated' => $agent?->authenticated,
+            'agent_uuid' => $agent?->agentUuid,
+        ]);
         if (!$agent) {
             Log::warning(
                 'Terminal target agent not connected',

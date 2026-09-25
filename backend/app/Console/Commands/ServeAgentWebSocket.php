@@ -228,7 +228,9 @@ class ServeAgentWebSocket extends Command
                         $connection
                     );
 
-                    @fclose($socket);
+                    if (is_resource($socket)) {
+                        fclose($socket);
+                    }
 
                     unset(
                         $connections[$id]

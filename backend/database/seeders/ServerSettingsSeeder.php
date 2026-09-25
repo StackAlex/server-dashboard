@@ -13,17 +13,17 @@ class ServerSettingsSeeder extends Seeder
             [
                 'settings' => 'Main_agent',
                 'value' => null,
-                'type' => 'OneSelect',
+                'type' => 'one_select',
             ],
             [
                 'settings' => 'Docker',
                 'value' => '1',
-                'type' => 'Toggle',
+                'type' => 'toggle',
             ],
             [
                 'settings' => 'Terminal_shell',
                 'value' => '/bin/bash',
-                'type' => 'Input',
+                'type' => 'input',
             ],
         ];
 

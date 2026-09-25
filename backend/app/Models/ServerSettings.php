@@ -8,8 +8,11 @@ class ServerSettings extends Model
 {
     protected $fillable = [
         'settings',
-        'value',
         'type',
         'update_by',
+    ];
+
+    protected $casts = [
+        'value' => 'array',
     ];
 }

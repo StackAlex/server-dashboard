@@ -11,10 +11,11 @@ import { useEffect, useRef, useState } from "react";
 import "./index.css";
 
 interface ListSelectProps {
-    list: Record<string, any>[];
+    list: any[];
     itemOptions?: string;
     itemName?: string;
     MultiSelect?: boolean;
+    value?: any | any[];
     onChange?: (selected: any | any[]) => void;
 }
 
@@ -23,14 +24,65 @@ export default function ListSelect_By_StackAlex({
     itemName,
     itemOptions,
     MultiSelect = false,
+    value,
     onChange
 }: ListSelectProps) {
-    console.log("This website use ListSelect By https://github.com/StackAlex")
+
+    console.log(
+        "This website use ListSelect By https://github.com/StackAlex"
+    );
 
     const [listSelect, setListSelect] = useState<Record<string, any>[]>([]);
     const [isOpen, setIsOpen] = useState(false);
 
     const selectRef = useRef<HTMLDivElement>(null);
+
+    /*
+     * Синхронизация выбранных элементов
+     * с value, который пришёл извне.
+     */
+    useEffect(() => {
+
+        if (value === undefined) {
+            return;
+        }
+
+        if (MultiSelect) {
+
+            const values = Array.isArray(value)
+                ? value
+                : [];
+
+            const selected = list.filter(option => {
+
+                const optionValue = itemOptions
+                    ? option[itemOptions]
+                    : option;
+
+                return values.includes(optionValue);
+            });
+
+            setListSelect(selected);
+
+        } else {
+
+            const selectedValue = Array.isArray(value)
+                ? value[0]
+                : value;
+
+            const selected = list.find(option => {
+
+                const optionValue = itemOptions
+                    ? option[itemOptions]
+                    : option;
+
+                return optionValue === selectedValue;
+            });
+
+            setListSelect(selected ? [selected] : []);
+        }
+
+    }, [value, list, MultiSelect, itemOptions]);
 
     function hundleSelect(option: Record<string, any>) {
 

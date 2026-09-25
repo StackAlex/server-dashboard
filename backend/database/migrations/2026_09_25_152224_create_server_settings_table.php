@@ -13,7 +13,7 @@ return new class extends Migration
 
             $table->string('settings');
 
-            $table->text('value')->nullable();
+            $table->jsonb('value')->default('[]');
 
             $table->enum('type', [
                 'toggle',

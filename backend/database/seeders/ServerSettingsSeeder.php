@@ -12,21 +12,25 @@ class ServerSettingsSeeder extends Seeder
     {
         $settings = [
             [
-                'settings' => 'main_agent',
+                'settings' => 'Main_agent',
                 'value' => [],
-                'options' => [],
+                'options' => [
+                    'source' => 'server_agents',
+                    'value' => 'id',
+                    'label' => 'name',
+                ],
                 'type' => 'one_select',
             ],
 
             [
-                'settings' => 'docker',
+                'settings' => 'Docker',
                 'value' => ['true'],
                 'options' => [],
                 'type' => 'toggle',
             ],
 
             [
-                'settings' => 'terminal_shell',
+                'settings' => 'Terminal_Shell',
                 'value' => ['/bin/bash'],
                 'options' => [],
                 'type' => 'input',

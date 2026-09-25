@@ -8,7 +8,9 @@ class ServerSettings extends Model
 {
     protected $fillable = [
         'settings',
+        'value',
         'type',
+        'options',
         'update_by',
     ];
 

@@ -31,8 +31,9 @@ class AgentWebSocketService
         ]);
     }
 
-    public function disconnect(AgentSocketConnection $connection): void
-    {
+    public function disconnect(
+        AgentSocketConnection $connection
+    ): void {
         if ($connection->terminalSessionId) {
             unset(
                 $this->terminalSessions[
@@ -44,6 +45,12 @@ class AgentWebSocketService
         foreach ($this->terminalSessions as $sessionId => $connectionId) {
             if ($connectionId === $connection->id) {
                 unset($this->terminalSessions[$sessionId]);
+            }
+        }
+
+        foreach ($this->terminalRequests as $requestId => $connectionId) {
+            if ($connectionId === $connection->id) {
+                unset($this->terminalRequests[$requestId]);
             }
         }
 
@@ -319,18 +326,24 @@ class AgentWebSocketService
             return;
         }
 
-        $terminal->targetAgentUuid = $agentId;
+       $terminal->targetAgentUuid = $agentId;
+
+        $requestId = $message['request_id'] ?? null;
+
+        if (!$requestId) {
+            Log::warning('terminal:open missing request_id');
+
+            return;
+        }
+
+        $this->terminalRequests[$requestId] = $terminal->id;
 
         $agent->send([
             'type' => 'terminal:open',
-            'request_id' =>
-                $message['request_id'] ?? null,
+            'request_id' => $requestId,
             'payload' => [
-                'cols' =>
-                    (int) ($payload['cols'] ?? 80),
-
-                'rows' =>
-                    (int) ($payload['rows'] ?? 24),
+                'cols' => (int) ($payload['cols'] ?? 80),
+                'rows' => (int) ($payload['rows'] ?? 24),
             ],
         ]);
 
@@ -467,10 +480,46 @@ class AgentWebSocketService
             return;
         }
 
-        $terminal =
-            $this->findTerminalForAgent(
-                $agent
+        $requestId = $message['request_id'] ?? null;
+
+        if (!$requestId) {
+            Log::warning('terminal:opened missing request_id');
+
+            return;
+        }
+
+        $connectionId = $this->terminalRequests[$requestId] ?? null;
+
+        if (!$connectionId) {
+            Log::warning(
+                'Terminal request connection not found',
+                [
+                    'request_id' => $requestId,
+                    'session_id' => $sessionId,
+                ]
             );
+
+            return;
+        }
+
+        $terminal = $this->connections[$connectionId] ?? null;
+
+        if (
+            !$terminal ||
+            $terminal->type !== 'terminal' ||
+            !$terminal->isOpen()
+        ) {
+            Log::warning(
+                'Terminal connection is unavailable',
+                [
+                    'connection_id' => $connectionId,
+                    'request_id' => $requestId,
+                    'session_id' => $sessionId,
+                ]
+            );
+
+            return;
+        }
 
         if (!$terminal) {
             Log::warning(
@@ -675,22 +724,12 @@ class AgentWebSocketService
         );
     }
 
-    protected function findTerminalForAgent(
-        AgentSocketConnection $agent
-    ): ?AgentSocketConnection {
-        foreach ($this->connections as $connection) {
-            if (
-                $connection->type === 'terminal' &&
-                $connection->targetAgentUuid ===
-                    $agent->agentUuid &&
-                $connection->isOpen()
-            ) {
-                return $connection;
-            }
-        }
-
-        return null;
-    }
+    /**
+     * request_id => terminal connection id
+     *
+     * @var array<string, string>
+     */
+    protected array $terminalRequests = [];
 
     protected function findTerminalBySession(
         array $message

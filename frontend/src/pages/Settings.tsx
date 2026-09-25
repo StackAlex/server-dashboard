@@ -1,22 +1,22 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/api";
+import { getSettings } from "../api/settings"
 import { ServerCog,
     UserRoundCog,
     UserPen,
     Save,
-    SaveCheck
+    SaveCheck,
+    User
  } from "lucide-react";
 
 export default function Settings() {
-    const [settingsInfo, setSettingsInfo] = useState("");
     useEffect(() => {
         document.title = "Dashboard | Settings";
     }, []);
-    // function getSettings(){
-    //     try{
-    //         api
-    //     }
-    // }
+    const [settingsInfo, setSettingsInfo] = useState([]);
+
+    const settingsServer = getSettings()
+    
     return (
         <>
             <section id="settings" className="page">

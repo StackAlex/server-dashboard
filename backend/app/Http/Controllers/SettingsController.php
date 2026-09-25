@@ -4,9 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\ServerSettings;
 
-class SettingsController
+class SettingsController extends Controller
 {
+    /**
+     * Получить пользовательские настройки
+     */
     public function userSettings()
     {
         $user = Auth::user();
@@ -15,15 +19,16 @@ class SettingsController
             'settings' => $user->settings,
         ]);
     }
+
+    /**
+     * Получить настройки Dashboard
+     */
     public function dashboardSettings()
     {
-        $user = Auth::user();
-        if ($user->role == 'admin') {
-            
-        }
+        $settings = ServerSettings::all();
 
         return response()->json([
-            'settings' => $user->settings,
+            'settingsServer' => $settings,
         ]);
     }
 }

@@ -12,7 +12,15 @@ return new class extends Migration
             $table->id();
 
             $table->string('settings');
+
             $table->text('value')->nullable();
+
+            $table->enum('type', [
+                'toggle',
+                'multi_select',
+                'one_select',
+                'input',
+            ]);
 
             $table->foreignId('update_by')
                 ->nullable()

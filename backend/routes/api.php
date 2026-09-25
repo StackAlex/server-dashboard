@@ -35,3 +35,5 @@ Route::post('/deleteAgent', [AgentController::class, 'deleteAgent'])->middleware
 
 Route::get('/docker/containers', [Docker::class, 'getContainers'])
     ->middleware('auth:sanctum');
+
+Route::get('/dashboard/settings', [SettingsController::class, 'dashboardSettings'])->middleware('auth:sanctum');

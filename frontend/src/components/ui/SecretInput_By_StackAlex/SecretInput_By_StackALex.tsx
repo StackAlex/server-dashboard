@@ -20,7 +20,8 @@ interface SecretInputProps {
     value: string;
     onChange: (value: string) => void;
 }
-export function SecretInput({ nameInput, value, onChange }: SecretInputProps){
+export function SecretInput_By_StackAlex({ nameInput, value, onChange }: SecretInputProps){
+    console.log("This website use SecretInput By https://github.com/StackAlex")
     const [hidden,setHidden] = useState(true)
     return (
         <div className="SecretInput__SA">

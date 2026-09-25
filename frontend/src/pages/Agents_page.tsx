@@ -12,12 +12,12 @@ import { useState, useEffect } from "react";
 import { LoadPage } from "./LoadPage";
 import { thisUser } from "../api/user"
 import { allAgent, saveAgent, deleteAgents } from "../api/agent"
-import { SecretInput } from "../components/ui/SecretInput_By_StackAlex/SecretInput"
+import { SecretInput_By_StackAlex } from "../components/ui/SecretInput_By_StackAlex/SecretInput_By_StackALex"
 import type { Agent } from "../api/agent"
 import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { CheckBox_SA } from "../components/ui/CheckBox_By_StackALex/CheckBoxSA";
-
+import {CheckBox_By_StackAlex} from "../components/ui/CheckBox_By_StackALex/CheckBox_By_StackAlex";
+import { ToolTip_By_StackAlex } from "../components/ui/ToolTip_By_StackAlex/ToolTip_By_StackAlex";
 
 export default function AgentPage(){
     
@@ -115,7 +115,7 @@ export default function AgentPage(){
                             </div>
                             <div className="inputGroup">
                                 <label>Token:</label>
-                                <SecretInput nameInput="agentToken" value={agentToken} onChange={setAgentToken}/>
+                                <SecretInput_By_StackAlex nameInput="agentToken" value={agentToken} onChange={setAgentToken}/>
                             </div>
                             <button
                             onClick={() => handleSaveAgent()}>Save <Save size={16}/></button>
@@ -174,7 +174,7 @@ export default function AgentPage(){
                                 <tr key={el.id}>
                                     {edit && (
                                         <td>
-                                            <CheckBox_SA
+                                            <CheckBox_By_StackAlex
                                                 nameCheckBox={`agent-${el.id}`}
                                                 checked={selectedAgents.includes(Number(el.id))}
                                                 onChange={(checked) =>
@@ -183,7 +183,12 @@ export default function AgentPage(){
                                             />
                                         </td>
                                     )}
-                                    <td>{el.agent_id || null}</td>
+                                    <td>{el.agent_id ?? (
+                                        <ToolTip_By_StackAlex
+                                            type="fulltext">
+                                                <span>{el.agent_id}</span>
+                                        </ToolTip_By_StackAlex>
+                                    )}</td>
                                     <td>{el.name}</td>
                                     <td>{el.user_id}</td>
                                     <td>{el.created_at}</td>

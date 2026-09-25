@@ -25,6 +25,7 @@ export default function ListSelect_By_StackAlex({
     MultiSelect = false,
     onChange
 }: ListSelectProps) {
+    console.log("This website use ListSelect By https://github.com/StackAlex")
 
     const [listSelect, setListSelect] = useState<Record<string, any>[]>([]);
     const [isOpen, setIsOpen] = useState(false);

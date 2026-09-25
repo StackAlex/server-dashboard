@@ -7,7 +7,6 @@
 // 3. You can edit file index.css 
 // =====================================
 
-
 import "./index.css";
 
 interface CheckBoxProps {
@@ -16,11 +15,12 @@ interface CheckBoxProps {
     onChange: (checked: boolean) => void;
 }
 
-export function CheckBox_SA({
+export function CheckBox_By_StackAlex({
     nameCheckBox,
     checked,
     onChange
 }: CheckBoxProps) {
+    console.log("This website use CheckBox By https://github.com/StackAlex")
     return (
         <label className="CheckBox__SA">
             <input
@@ -33,3 +33,20 @@ export function CheckBox_SA({
         </label>
     );
 }
+
+/* 
+===================================================================
+Example:
+
+toggleAgent - function
+const [selectedAgents, setSelectedAgents] = useState<number[]>([]);
+
+<CheckBox_By_StackAlex
+    nameCheckBox={`agent-${el.id}`}
+    checked={selectedAgents.includes(Number(el.id))}
+    onChange={(checked) =>
+        toggleAgent(Number(el.id), checked)
+    }
+/>
+===================================================================
+*/

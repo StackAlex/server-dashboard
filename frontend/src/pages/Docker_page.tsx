@@ -9,7 +9,7 @@ import { RotateCw,
  } from "lucide-react";
 
 import {useEffect, useState}from 'react';
-import {CheckBox_SA} from "../components/ui/CheckBox_By_StackALex/CheckBoxSA";
+import {CheckBox_By_StackAlex} from "../components/ui/CheckBox_By_StackALex/CheckBox_By_StackAlex";
 import { allContainers } from "../api/docker";
 
 export default async function Docker_page() {
@@ -87,7 +87,7 @@ export default async function Docker_page() {
                     <tbody>
                         <tr>
                             <td>
-                                {/* <CheckBox_SA
+                                {/* <CheckBox_By_StackAlex
                                     nameCheckBox={`container-${cont.id}`}
                                     checked={selectedAgents.includes(cont.id)}
                                     onChange={(checked) => toggleContainer(cont.id, checked)}

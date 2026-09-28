@@ -79,28 +79,31 @@ class SettingsController extends Controller
             ->toArray();
     }
 
-    public function saveSettings(array $input): array
+    public function saveSettings(Request $request)
     {
-        $type = $input['type'];
-        $data = $input['data'];
+        $type = $request->input('type');
+        $data = $request->input('data', []);
 
-        if ($type === 's') {
-            foreach ($data as $name => $value) {
-                // $name  — название настройки
-                // $value — значение настройки
+        match ($type) {
+            'server' => $this->saveServerSettings($data),
+            // 'user' => $this->saveUserSettings($data),
+            // 'personal' => $this->savePersonalSettings($data),
+            default => abort(400, 'Unknown settings type'),
+        };
 
-                ServerSettings::where('settings', $name)
-                    ->update([
-                        'value' => $value,
-                        'update_by' => auth()->id(),
-                    ]);
-            }
-        }
-        if ($type === 'u'){
+        return response()->json([
+            'success' => true,
+        ]);
+    }
 
-        }
-        if ($type === 'p'){
-
+    private function saveServerSettings(array $data): void
+    {
+        foreach ($data as $name => $value) {
+            ServerSettings::where('settings', $name)
+                ->update([
+                    'value' => $value,
+                    'update_by' => auth()->id(),
+                ]);
         }
     }
 }

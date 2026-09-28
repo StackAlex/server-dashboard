@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { getSettings } from "../api/settings";
+import { SaveSettings } from "../api/settings"
+
 import {
     ServerCog,
     UserRoundCog,
@@ -57,6 +59,21 @@ export default function Settings() {
             [settingName]: value,
         }));
     };
+
+    async function SaveServerSettings(data: Record<string, string[]>) {
+        try {
+            const response = await SaveSettings("server", data);
+
+            if (!response.data.success) {
+                throw new Error("Error");
+            }
+
+            window.location.reload();
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     return (
         <section id="settings" className="page">
             <div className="window_all_settings">
@@ -200,8 +217,9 @@ export default function Settings() {
                             );
                         })}
                         <button
-                            type="submit"
+                            type="button"
                             className="btn_icon"
+                            onClick={() => SaveServerSettings(settings)}
                         >
                             <Save size={18} />
                             Update

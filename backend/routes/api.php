@@ -37,3 +37,5 @@ Route::get('/docker/containers', [Docker::class, 'getContainers'])
     ->middleware('auth:sanctum');
 
 Route::get('/dashboard/settings', [SettingsController::class, 'dashboardSettings'])->middleware('auth:sanctum');
+
+Route::post('/dashboard/settings/save', [SettingsController::class, 'saveSettings'])->middleware('auth:sanctum');

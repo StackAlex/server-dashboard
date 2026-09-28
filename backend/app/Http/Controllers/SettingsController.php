@@ -78,4 +78,29 @@ class SettingsController extends Controller
             ->values()
             ->toArray();
     }
+
+    public function saveSettings(array $input): array
+    {
+        $type = $input['type'];
+        $data = $input['data'];
+
+        if ($type === 's') {
+            foreach ($data as $name => $value) {
+                // $name  — название настройки
+                // $value — значение настройки
+
+                ServerSettings::where('settings', $name)
+                    ->update([
+                        'value' => $value,
+                        'update_by' => auth()->id(),
+                    ]);
+            }
+        }
+        if ($type === 'u'){
+
+        }
+        if ($type === 'p'){
+
+        }
+    }
 }

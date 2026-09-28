@@ -155,6 +155,8 @@ export default function Settings() {
                                     {setting.type === "toggle" && (
                                         <Toggle_By_StackAlex
                                             value={settings[setting.settings]?.[0] === "true"}
+                                            colorEnable="#8b5cf6"
+                                            colorDisable="#444"
                                             onChange={(value) =>
                                                 handleSettingChange(
                                                     setting.settings,

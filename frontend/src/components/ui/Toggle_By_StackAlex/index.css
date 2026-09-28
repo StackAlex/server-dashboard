@@ -51,15 +51,11 @@
 /* Активный фон */
 
 .active_bg {
-    position: absolute;
-
-    inset: 0;
-
     border-radius: inherit;
-
-    transition:
-        opacity 0.2s ease,
-        background 0.2s ease;
+    transition: opacity .2s, background .2s;
+    position: absolute;
+    inset: 0;
+    background: #4261ff;
 }
 
 

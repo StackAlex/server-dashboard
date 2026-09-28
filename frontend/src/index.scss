@@ -260,8 +260,14 @@ body {
             background: var(--text-color);
             color: var(--main-background-color);
         }
-        .input_icon {
+        body main form.input_icon {
             display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 15px;
+            border: none;
+        }
+        .input_icon {
             align-items: center;
             border: 1px solid var(--text-color);
             border-radius: 5px;
@@ -303,6 +309,14 @@ body {
             margin: 20px 0;
             padding: 10px 20px;
             border-radius: 20px;
+        }
+        .form.settings_type {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            .group{
+                border: white 2px;
+            }
         }
     }
 }

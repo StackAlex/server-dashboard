@@ -130,7 +130,7 @@ export default function Settings() {
                                 .join(" ");
 
                             return (
-                                <div key={setting.id}>
+                                <div className={`group ${setting.type}`} key={setting.id}>
 
                                     <label htmlFor={setting.settings}>
                                         {label}

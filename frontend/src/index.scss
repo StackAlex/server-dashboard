@@ -562,3 +562,41 @@ body {
         justify-content: center;
     }
 }
+#settings{
+    .group{
+        margin: 20px 0;
+        padding-bottom: 20px;
+        padding-left: 20px;
+        border-bottom: 1px solid var(--text-color);
+        .one_select {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .toggle {
+            display: flex;
+            justify-content: space-between;
+            padding-right: 50%;
+        }
+        .input {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            input {
+                background: transparent;
+                border: var(--text-color) solid 1px;
+                max-width: 400px;
+                min-width: 100px;
+                width: 20%;
+                padding: 8px 10px;
+            }
+            input:focus {
+                outline: none;
+            }
+            input:focus-visible {
+                outline: 0px;
+            }
+        }
+    }
+}

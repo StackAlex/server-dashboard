@@ -31,7 +31,6 @@ class SettingsController extends Controller
 
         foreach ($settings as $setting) {
             $setting->options = $this->getAllOptions($setting);
-            $setting->options = $this->getNetworkSettings($setting);
         }
 
         return response()->json([

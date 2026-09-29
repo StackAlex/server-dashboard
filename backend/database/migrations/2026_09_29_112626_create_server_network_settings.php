@@ -14,17 +14,11 @@ return new class extends Migration
         Schema::create('server_network_settings', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('agent_id')
-                ->constrained('server_agents')
-                ->cascadeOnDelete();
-
             $table->jsonb('dns')->default('{}');
             $table->jsonb('proxy')->default('{}');
             $table->jsonb('docker_proxy')->default('{}');
 
             $table->timestamps();
-
-            $table->unique('agent_id');
         });
     }
 

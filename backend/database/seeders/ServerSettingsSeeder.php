@@ -19,6 +19,7 @@ class ServerSettingsSeeder extends Seeder
                     'value' => 'id',
                     'label' => 'name',
                 ],
+                'meta'=> [],
                 'type' => 'one_select',
             ],
 
@@ -26,6 +27,7 @@ class ServerSettingsSeeder extends Seeder
                 'settings' => 'Docker',
                 'value' => ['true'],
                 'options' => [],
+                'meta'=> [],
                 'type' => 'toggle',
             ],
 
@@ -33,6 +35,7 @@ class ServerSettingsSeeder extends Seeder
                 'settings' => 'Terminal_Shell',
                 'value' => ['/bin/bash'],
                 'options' => [],
+                'meta'=> [],
                 'type' => 'input',
             ],
 
@@ -145,6 +148,7 @@ class ServerSettingsSeeder extends Seeder
                     'value' => $setting['value'],
                     'type' => $setting['type'],
                     'options' => $setting['options'],
+                    'meta' => $setting['meta'],
                     'update_by' => null,
                 ]
             );

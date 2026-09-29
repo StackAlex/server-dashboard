@@ -91,6 +91,20 @@ class AgentWebSocketService
                 $this->handleStats($connection, $message);
                 break;
 
+            case 'docker:containers:result':
+                $this->handleDockerContainersResult(
+                    $connection,
+                    $message
+                );
+                break;
+
+            case 'docker:containers:error':
+                $this->handleDockerContainersError(
+                    $connection,
+                    $message
+                );
+                break;
+
             case 'heartbeat':
                 break;
 
@@ -771,5 +785,82 @@ class AgentWebSocketService
         }
 
         return $terminal;
+    }
+
+    protected function handleDockerContainersResult(
+        AgentSocketConnection $connection,
+        array $message
+    ): void {
+        if (!$connection->authenticated) {
+            Log::warning(
+                'Ignoring docker containers result from unauthenticated agent'
+            );
+
+            return;
+        }
+
+        $requestId = $message['request_id'] ?? null;
+
+        if (!$requestId) {
+            Log::warning(
+                'docker:containers:result missing request_id'
+            );
+
+            return;
+        }
+
+        $payload = $message['payload'] ?? [];
+
+        \Illuminate\Support\Facades\Cache::put(
+            "docker:containers:{$requestId}",
+            [
+                'status' => 'success',
+                'payload' => $payload,
+            ],
+            now()->addSeconds(30)
+        );
+
+        Log::info(
+            'Docker containers result received',
+            [
+                'request_id' => $requestId,
+                'agent_id' => $connection->agentUuid,
+            ]
+        );
+    }
+    
+    protected function handleDockerContainersError(
+        AgentSocketConnection $connection,
+        array $message
+    ): void {
+        if (!$connection->authenticated) {
+            return;
+        }
+
+        $requestId = $message['request_id'] ?? null;
+
+        if (!$requestId) {
+            return;
+        }
+
+        $payload = $message['payload'] ?? [];
+
+        \Illuminate\Support\Facades\Cache::put(
+            "docker:containers:{$requestId}",
+            [
+                'status' => 'error',
+                'payload' => $payload,
+            ],
+            now()->addSeconds(30)
+        );
+
+        Log::error(
+            'Docker containers request failed',
+            [
+                'request_id' => $requestId,
+                'agent_id' => $connection->agentUuid,
+                'error' => $payload['error'] ?? 'Unknown error',
+            ]
+        );
     }
 }

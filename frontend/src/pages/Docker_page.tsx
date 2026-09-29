@@ -12,16 +12,29 @@ import {useEffect, useState}from 'react';
 import {CheckBox_By_StackAlex} from "../components/ui/CheckBox_By_StackALex/CheckBox_By_StackAlex";
 import { allContainers } from "../api/docker";
 
-export default async function Docker_page() {
+export default function Docker_page() {
+    const [containers, setContainers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         document.title = "Dashboard | Docker";
-
+        loadContainers();
     }, []);
 
-    // const dataContainers = await allContainers();
+    async function loadContainers() {
+        try {
+            setLoading(true);
 
-    // console.log(dataContainers);
+            const response = await allContainers();
+
+            console.log(response.data);
+
+        } catch (error) {
+            console.error("Failed to load containers:", error);
+        } finally {
+            setLoading(false);
+        }
+    }
 
     const [editCon, setEditCon] = useState(false);
 

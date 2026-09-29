@@ -695,103 +695,57 @@ class AgentWebSocketService
 
 
     protected function findAgentConnection(
-        string $agentId
-    ): ?AgentSocketConnection {
+    string $agentId
+): ?AgentSocketConnection {
 
-        foreach ($this->connections as $connection) {
+    Log::info('[agent-search] Searching connection', [
+        'requested_agent_id' => $agentId,
+        'connections_count' => count($this->connections),
+    ]);
 
-            Log::info('[agent-search] Checking connection', [
-                'connection_id' => $connection->id,
-                'requested_agent_id' => $agentId,
+    foreach ($this->connections as $key => $connection) {
 
-                'type' => $connection->type,
-                'authenticated' => $connection->authenticated,
-                'agent_uuid' => $connection->agentUuid,
-                'is_open' => $connection->isOpen(),
+        $typeMatch = $connection->type === 'agent';
+        $authMatch = $connection->authenticated === true;
+        $uuidMatch = $connection->agentUuid === $agentId;
+        $openMatch = $connection->isOpen();
 
-                'type_match' => $connection->type === 'agent',
-                'auth_match' => $connection->authenticated === true,
-                'uuid_match' => $connection->agentUuid === $agentId,
-                'open_match' => $connection->isOpen(),
-            ]);
+        Log::info('[agent-search] Checking connection', [
+            'key' => $key,
+            'connection_id' => $connection->id,
 
-            if (
-                $connection->type === 'agent' &&
-                $connection->authenticated &&
-                $connection->agentUuid === $agentId &&
-                $connection->isOpen()
-            ) {
-                Log::info('[agent-search] MATCH', [
-                    'connection_id' => $connection->id,
-                    'agent_uuid' => $connection->agentUuid,
-                ]);
+            'type' => $connection->type,
+            'authenticated' => $connection->authenticated,
+            'agent_uuid' => $connection->agentUuid,
+            'is_open' => $openMatch,
 
-                return $connection;
-            }
-        }
-
-        Log::warning('[agent-search] NO MATCH', [
-            'requested_agent_id' => $agentId,
+            'type_match' => $typeMatch,
+            'auth_match' => $authMatch,
+            'uuid_match' => $uuidMatch,
+            'open_match' => $openMatch,
         ]);
 
-        return null;
-    }
-
-    protected function getAgentForTerminal(
-        AgentSocketConnection $terminal,
-        array $message
-    ): ?AgentSocketConnection {
-        $payload = $message['payload'] ?? [];
-
-        $sessionId =
-            $payload['session_id'] ?? null;
-
-        if (!$sessionId) {
-            Log::warning(
-                'Terminal message missing session_id'
-            );
-
-            return null;
-        }
-
-        $connectionId =
-            $this->terminalSessions[$sessionId]
-            ?? null;
-
-        if (!$connectionId) {
-            Log::warning(
-                'Unknown terminal session',
-                [
-                    'session_id' =>
-                        $sessionId,
-                ]
-            );
-
-            return null;
-        }
-
         if (
-            $connectionId !==
-            $terminal->id
+            $typeMatch &&
+            $authMatch &&
+            $uuidMatch &&
+            $openMatch
         ) {
-            Log::warning(
-                'Terminal session ownership mismatch'
-            );
+            Log::info('[agent-search] MATCH', [
+                'connection_id' => $connection->id,
+                'agent_uuid' => $connection->agentUuid,
+            ]);
 
-            return null;
+            return $connection;
         }
-
-        $agentId =
-            $terminal->targetAgentUuid;
-
-        if (!$agentId) {
-            return null;
-        }
-
-        return $this->findAgentConnection(
-            $agentId
-        );
     }
+
+    Log::warning('[agent-search] NO MATCH', [
+        'requested_agent_id' => $agentId,
+    ]);
+
+    return null;
+}
 
     /**
      * request_id => terminal connection id

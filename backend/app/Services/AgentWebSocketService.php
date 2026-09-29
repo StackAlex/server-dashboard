@@ -669,15 +669,28 @@ class AgentWebSocketService
         string $agentUuid,
         array $message
     ): bool {
-        $connection = $this->findAgentConnection($agentUuid);
+        $timeout = 3;
+        $startedAt = microtime(true);
 
-        if (!$connection) {
-            return false;
+        while (
+            microtime(true) - $startedAt < $timeout
+        ) {
+            $connection = $this->findAgentConnection($agentUuid);
+
+            if ($connection) {
+                $connection->send($message);
+
+                return true;
+            }
+
+            usleep(100_000);
         }
 
-        $connection->send($message);
+        Log::warning('[agent] Connection unavailable', [
+            'agent_uuid' => $agentUuid,
+        ]);
 
-        return true;
+        return false;
     }
 
 

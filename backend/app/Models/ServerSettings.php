@@ -11,11 +11,13 @@ class ServerSettings extends Model
         'value',
         'type',
         'options',
+        'meta',
         'update_by',
     ];
 
     protected $casts = [
         'value' => 'array',
         'options' => 'array',
+        'meta' => 'array',
     ];
 }

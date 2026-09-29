@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\ServerSettings;
+use App\Models\ServerNetworkSettings;
 use App\Models\ServerAgent;
 
 class SettingsController extends Controller
@@ -30,6 +31,7 @@ class SettingsController extends Controller
 
         foreach ($settings as $setting) {
             $setting->options = $this->getAllOptions($setting);
+            $setting->options = $this->getNetworkSettings($setting);
         }
 
         return response()->json([

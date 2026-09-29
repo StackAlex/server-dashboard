@@ -14,6 +14,7 @@ class ServerNetworkSettingsSeeder extends Seeder
             [
                 'dns' => [
                     'enabled' => false,
+                    'type' =>'toggle',
                     'servers' => [],
                 ],
 

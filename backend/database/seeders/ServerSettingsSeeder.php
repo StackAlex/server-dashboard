@@ -35,6 +35,105 @@ class ServerSettingsSeeder extends Seeder
                 'options' => [],
                 'type' => 'input',
             ],
+
+            [
+                'settings' => 'DNS',
+                'value' => ['false'],
+                'options' => [],
+                'meta' => [
+                    'transport' => 'server_agent',
+                    'category' => 'network',
+                ],
+                'type' => 'toggle',
+            ],
+
+            [
+                'settings' => 'DNS_servers',
+                'value' => [],
+                'options' => [],
+                'meta' => [
+                    'transport' => 'server_agent',
+                    'category' => 'network',
+                ],
+                'type' => 'input',
+            ],
+
+            [
+                'settings' => 'Proxy',
+                'value' => ['false'],
+                'options' => [],
+                'meta' => [
+                    'transport' => 'server_agent',
+                    'category' => 'network',
+                ],
+                'type' => 'toggle',
+            ],
+
+            [
+                'settings' => 'Proxy_url',
+                'value' => [],
+                'options' => [],
+                'meta' => [
+                    'transport' => 'server_agent',
+                    'category' => 'network',
+                ],
+                'type' => 'input',
+            ],
+
+            [
+                'settings' => 'Proxy_Username',
+                'value' => [],
+                'options' => [],
+                'meta' => [
+                    'transport' => 'server_agent',
+                    'category' => 'network',
+                ],
+                'type' => 'input',
+            ],
+
+            [
+                'settings' => 'Proxy_password__secret',
+                'value' => [],
+                'options' => [],
+                'meta' => [
+                    'transport' => 'server_agent',
+                    'category' => 'network',
+                ],
+                'type' => 'input',
+            ],
+
+            [
+                'settings' => 'Proxy_exclude',
+                'value' => [],
+                'options' => [],
+                'meta' => [
+                    'transport' => 'server_agent',
+                    'category' => 'network',
+                ],
+                'type' => 'input',
+            ],
+
+            [
+                'settings' => 'Docker_Proxy',
+                'value' => ['false'],
+                'options' => [],
+                'meta' => [
+                    'transport' => 'server_agent',
+                    'category' => 'network',
+                ],
+                'type' => 'toggle',
+            ],
+
+            [
+                'settings' => 'Docker_Proxy_URL',
+                'value' => [],
+                'options' => [],
+                'meta' => [
+                    'transport' => 'server_agent',
+                    'category' => 'network',
+                ],
+                'type' => 'input',
+            ],
         ];
 
         foreach ($settings as $setting) {

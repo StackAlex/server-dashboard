@@ -17,6 +17,8 @@ return new class extends Migration
 
             $table->jsonb('options')->default('[]');
 
+            $table->jsonb('meta')->default('[]');
+
             $table->enum('type', [
                 'toggle',
                 'multi_select',

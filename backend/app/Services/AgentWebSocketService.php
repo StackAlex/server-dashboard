@@ -697,17 +697,22 @@ class AgentWebSocketService
     protected function findAgentConnection(
         string $agentId
     ): ?AgentSocketConnection {
-        Log::info('[agent-search] Searching connection', [
-            'requested_agent_id' => $agentId,
-        ]);
 
         foreach ($this->connections as $connection) {
-            Log::info('[agent-search] Connection', [
+
+            Log::info('[agent-search] Checking connection', [
                 'connection_id' => $connection->id,
+                'requested_agent_id' => $agentId,
+
                 'type' => $connection->type,
                 'authenticated' => $connection->authenticated,
-                'agentUuid' => $connection->agentUuid,
-                'isOpen' => $connection->isOpen(),
+                'agent_uuid' => $connection->agentUuid,
+                'is_open' => $connection->isOpen(),
+
+                'type_match' => $connection->type === 'agent',
+                'auth_match' => $connection->authenticated === true,
+                'uuid_match' => $connection->agentUuid === $agentId,
+                'open_match' => $connection->isOpen(),
             ]);
 
             if (
@@ -717,7 +722,8 @@ class AgentWebSocketService
                 $connection->isOpen()
             ) {
                 Log::info('[agent-search] MATCH', [
-                    'agent_id' => $agentId,
+                    'connection_id' => $connection->id,
+                    'agent_uuid' => $connection->agentUuid,
                 ]);
 
                 return $connection;

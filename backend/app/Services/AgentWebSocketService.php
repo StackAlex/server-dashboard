@@ -665,6 +665,22 @@ class AgentWebSocketService
      * ============================================================
      */
 
+    public function sendToAgent(
+        string $agentUuid,
+        array $message
+    ): bool {
+        $connection = $this->findAgentConnection($agentUuid);
+
+        if (!$connection) {
+            return false;
+        }
+
+        $connection->send($message);
+
+        return true;
+    }
+
+
     protected function findAgentConnection(
         string $agentId
     ): ?AgentSocketConnection {

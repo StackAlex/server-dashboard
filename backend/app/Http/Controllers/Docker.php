@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Services\AgentWebSocketService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use App\Models\ServerSettings;
 use App\Models\ServerAgent;
 use Illuminate\Support\Facades\Cache;
@@ -40,28 +39,34 @@ class Docker extends Controller
 
         $agentUuid = $agent->agent_id;
 
-        $connection = $this->webSocketService
-            ->findAgentConnection($agentUuid);
-
-        if (!$connection) {
-            return response()->json([
-                'error' => 'Agent is not connected',
-            ], 404);
-        }
-
+        /*
+         * Создаём request_id ДО отправки запроса агенту.
+         */
         $requestId = bin2hex(
             random_bytes(16)
         );
 
-        $connection->send([
-            'type' => 'docker:containers',
-            'request_id' => $requestId,
-            'payload' => [],
-        ]);
+        /*
+         * Отправляем запрос агенту.
+         */
+        $sent = $this->webSocketService->sendToAgent(
+            $agentUuid,
+            [
+                'type' => 'docker:containers',
+                'request_id' => $requestId,
+                'payload' => [],
+            ]
+        );
+
+        if (!$sent) {
+            return response()->json([
+                'error' => 'Main agent is not connected',
+            ], 503);
+        }
 
         /*
-        * Ждём ответ агента.
-        */
+         * Ждём ответ агента.
+         */
         $cacheKey = "docker:containers:{$requestId}";
 
         $timeout = 10;
@@ -77,8 +82,7 @@ class Docker extends Controller
                 Cache::forget($cacheKey);
 
                 if (
-                    ($result['status'] ?? null)
-                    === 'error'
+                    ($result['status'] ?? null) === 'error'
                 ) {
                     return response()->json([
                         'error' =>
@@ -88,7 +92,7 @@ class Docker extends Controller
                 }
 
                 return response()->json(
-                    $result['payload']
+                    $result['payload'] ?? []
                 );
             }
 

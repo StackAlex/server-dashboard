@@ -115,7 +115,7 @@ export default function Settings() {
                             className="btn_icon"
                         >
                             <Save size={18} />
-                            Update
+                            Save
                         </button>
                     </form>
                 </div>
@@ -222,7 +222,7 @@ export default function Settings() {
                             onClick={() => SaveServerSettings(settings)}
                         >
                             <Save size={18} />
-                            Update
+                            Save
                         </button>
                     </form>
                 </div>

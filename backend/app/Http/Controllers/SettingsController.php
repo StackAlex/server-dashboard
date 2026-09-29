@@ -54,7 +54,6 @@ class SettingsController extends Controller
 
         return match ($options['source']) {
             'server_agents' => $this->getAgentsOptions($options),
-
             default => [],
         };
     }
